@@ -1,0 +1,39 @@
+1
+00:00:00,000 --> 00:00:01,600
+What if I told you...
+
+2
+00:00:01,600 --> 00:00:04,000
+you can create motion graphics
+
+3
+00:00:04,000 --> 00:00:06,300
+without even opening After Effects?
+
+4
+00:00:06,300 --> 00:00:09,300
+And no — I'm not talking about an After Effects MCP.
+
+5
+00:00:09,300 --> 00:00:12,800
+This is Claude Opus 5.5.
+
+6
+00:00:12,800 --> 00:00:15,200
+Instead of controlling After Effects,
+
+7
+00:00:15,200 --> 00:00:18,800
+you basically tell Claude what you want the animation to look like.
+
+8
+00:00:18,800 --> 00:00:20,000
+For example:
+
+9
+00:00:20,000 --> 00:00:29,100
+"Create a 15-second cinematic motion graphics sequence with kinetic typography, smooth shape transitions, 3D elements and seamless camera movement."
+
+10
+00:00:29,100 --> 00:00:32,000
+And this is where it gets crazy.
