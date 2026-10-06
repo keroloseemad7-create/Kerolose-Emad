@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, Sequence} from 'remotion';
+import {AbsoluteFill, Audio, Sequence, staticFile} from 'remotion';
 import {CutFlash, FilmGrain, Vignette} from './components/Overlays';
 import {Build} from './scenes/Build';
 import {Details} from './scenes/Details';
@@ -11,6 +11,8 @@ import {COLORS, SCENES} from './theme';
 
 export const TiddyVideo: React.FC = () => (
   <AbsoluteFill style={{background: COLORS.black}}>
+    {/* 120 BPM soundtrack synthesized by music/make_music.py, every hit on the scene beats */}
+    <Audio src={staticFile('music.wav')} />
     <Sequence name="1 · The Build" from={SCENES.build.from} durationInFrames={SCENES.build.duration}>
       <Build />
     </Sequence>
