@@ -119,11 +119,11 @@ function render(t){
   }
   // ---------- S6: This is CLAUDE OPUS 5.5 (10.0 - 12.9)
   if(t>=10.0&&t<12.9){
-    const out=seg(t,12.6,12.9);
+    const out=seg(t,12.3,12.6);
     const lp=eo(seg(t,10.0,10.5));
     const cl=seg(t,10.55,11.2);
     const ver=t<11.6?'':t<11.85?'5.':t<12.1?String(Math.floor(rnd(Math.floor(t*30))*9))+'.'+Math.floor(rnd(Math.floor(t*30)+1)*9):'5.5';
-    h+=`<div class="abs" style="inset:0;opacity:${1-out};transform:scale(${1+out*.15})">
+    h+=`<div class="abs" style="inset:0;opacity:${1-out};transform:scale(${1-out*.08});filter:blur(${out*10}px)">
       <div class="abs" style="left:300px;top:240px;height:3px;width:${lp*1320}px;background:linear-gradient(90deg,#ff7a4a,#ffd0b8);box-shadow:0 0 18px #ff7a4a"></div>
       <div class="abs" style="left:300px;top:270px;font:700 60px Inter">${words('This is',t,10.1,6)}</div>
       <div class="abs big" style="left:290px;top:350px;font-size:270px;opacity:${seg(t,10.5,10.7)};transform:translateY(${(1-eo(cl))*40}px);color:${t<11.3?'var(--or)':'#e9f1ff'}" class="glow"><span class="${t<11.3?'oglow':'glow'}">CLAUDE</span></div>
@@ -131,12 +131,29 @@ function render(t){
       <div class="abs" style="left:900px;top:820px;height:4px;width:${seg(t,11.6,12.2)*560}px;background:var(--or);box-shadow:0 0 16px var(--or)"></div>
     </div>`;
   }
+  // ---------- PHOTO: creator card (12.3 - 13.8)
+  if(t>=12.3&&t<13.85){
+    const inn=eo(seg(t,12.3,12.75)),rev=eio(seg(t,12.4,12.85)),out=eio(seg(t,13.5,13.85));
+    const w=620,hh=w*1020/1100,x=(W-w)/2,y=(H-hh)/2-20;
+    const br=(l,tp,r,b)=>`<div class="abs" style="${l}${tp}${r}${b}width:46px;height:46px;border-color:var(--or);border-style:solid;border-width:${tp?'4px':'0'} ${r?'4px':'0'} ${b?'4px':'0'} ${l?'4px':'0'};filter:drop-shadow(0 0 8px var(--or))"></div>`;
+    h+=`<div class="abs" style="inset:0;opacity:${1-out};transform:scale(${L(.92,1,inn)+out*.12});filter:blur(${out*8}px)">
+      <div class="abs" style="left:${x-120}px;top:${y-120}px;width:${w+240}px;height:${hh+240}px;background:radial-gradient(ellipse,rgba(255,122,74,.35),transparent 65%);opacity:${inn}"></div>
+      <div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px;border-radius:22px;overflow:hidden;clip-path:inset(0 0 ${100-rev*100}% 0 round 22px);box-shadow:0 0 0 2px rgba(255,180,150,.7),0 30px 80px rgba(0,0,0,.6)">
+        <img src="me.jpg" style="width:100%;height:100%;object-fit:cover;transform:scale(${L(1.15,1.03,eo(seg(t,12.4,13.8)))})">
+        <div class="abs" style="left:0;right:0;top:${rev*100}%;height:4px;margin-top:-4px;background:#fff;box-shadow:0 0 24px 6px var(--or);opacity:${rev<1?1:0}"></div>
+      </div>
+      <div class="abs" style="left:${x-24}px;top:${y-24}px;width:${w+48}px;height:${hh+48}px;opacity:${seg(t,12.6,12.8)}">
+        ${br('left:0;','top:0;','','')}${br('','top:0;','right:0;','')}${br('left:0;','','','bottom:0;')}${br('','','right:0;','bottom:0;')}</div>
+      <div class="lbl abs" style="left:${x}px;top:${y+hh+40}px;opacity:${seg(t,12.75,12.95)}">fig. 2 — made with claude</div>
+      <div class="lbl abs" style="left:${x+w-140}px;top:${y+hh+40}px;color:var(--or);opacity:${seg(t,12.75,12.95)}">● REC</div>
+    </div>`;
+  }
   // ---------- S7: Instead of controlling After Effects, (12.9 - 15.6)
-  if(t>=12.9&&t<15.7){
-    const inn=seg(t,12.9,13.2);
+  if(t>=13.55&&t<15.7){
+    const inn=seg(t,13.55,13.85);
     const slide=eio(seg(t,15.1,15.7));
     h+=`<div class="abs" style="inset:0;opacity:${inn};transform:translateX(${-slide*700}px);filter:blur(${slide*8}px)">
-      <div class="abs" style="left:420px;top:180px;font:700 70px Inter;line-height:1.15">${words('Instead of controlling',t,13.0,6)}<br>${words('After Effects,',t,13.6,5)}</div>
+      <div class="abs" style="left:420px;top:180px;font:700 70px Inter;line-height:1.15">${words('Instead of controlling',t,13.6,7)}<br>${words('After Effects,',t,14.05,6)}</div>
       ${graph(t,420,380,1080,520)}</div>`;
   }
   // ---------- S8: you basically tell Claude what you want the animation to look like (15.2 - 19.0)
@@ -208,11 +225,11 @@ function nodes(t,x,y){
   return s;
 }
 function graph(t,x,y,w,hh){
-  const k=eio(seg(t,13.7,14.8));
+  const k=eio(seg(t,14.2,15.0));
   const p0=[60,hh-60],p3=[w-80,70];
   const c1=[L(250,w*.55,k),L(hh-160,hh-50,k)],c2=[L(w-300,w*.55,k),L(170,70,k)];
   const cur=[c2[0]+8,c2[1]+8];
-  return `<div class="abs box" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px;opacity:${seg(t,13.2,13.5)}">
+  return `<div class="abs box" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px;opacity:${seg(t,13.8,14.1)}">
    <div class="lbl abs" style="left:16px;top:10px;font-size:12px">GRAPH EDITOR</div><div class="lbl abs" style="right:16px;top:10px;font-size:12px">manual adjustments: ${Math.floor(1+k*7)}</div>
    <svg class="abs" style="left:0;top:0" width="${w}" height="${hh}">
     <line x1="60" y1="40" x2="60" y2="${hh-60}" stroke="#55627e"/><line x1="60" y1="${hh-60}" x2="${w-40}" y2="${hh-60}" stroke="#55627e"/>
