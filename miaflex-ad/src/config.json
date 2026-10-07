@@ -1,0 +1,61 @@
+{
+  "_readme": "All editable text + timings live here. Timings are in BEATS (125 BPM by default => 1 beat = 0.48s). 'src' = seconds in miaflex.mp4, 'speed' = playback speed. After editing run: npm run build",
+
+  "video": { "width": 1080, "height": 1920, "fps": 30, "source": "miaflex.mp4", "sourceWidth": 864, "sourceHeight": 1536 },
+
+  "palette": { "purple": "#6B2C91", "deep": "#2E0D47", "lavender": "#C9A7F2", "glow": "#B57BFF", "white": "#FFFFFF" },
+
+  "text": {
+    "hook": ["MUSCLES", "TIRED?"],
+    "revealTitle": "MIAFLEX",
+    "revealSub": "SPRAY",
+    "spray": "PSST!",
+    "endTitle": "MIAFLEX SPRAY",
+    "endBy": "by ONYX Pharma",
+    "cta": "Available now"
+  },
+
+  "clips": [
+    { "id": "hook1",   "beats": 1, "src": 8.4,  "speed": 2.0, "in": "cut" },
+    { "id": "hook2",   "beats": 1, "src": 12.4, "speed": 2.0, "in": "whip" },
+    { "id": "hook3",   "beats": 1, "src": 24.0, "speed": 2.2, "in": "flash-white" },
+    { "id": "hook4",   "beats": 1, "src": 2.6,  "speed": 2.5, "in": "whip" },
+    { "id": "reveal",  "beats": 5, "speed": 1.0, "in": "flash-white", "freeze": { "atSrc": 31.0, "afterBeats": 1.5, "holdBeats": 1.75 } },
+    { "id": "ramp1",   "beats": 1, "src": 9.0,  "speed": 3.0, "in": "whip" },
+    { "id": "feat1",   "beats": 4, "src": 3.55, "speed": 0.9, "in": "zoom" },
+    { "id": "ramp2",   "beats": 1, "src": 13.8, "speed": 3.0, "in": "whip" },
+    { "id": "feat2",   "beats": 4, "src": 25.9, "speed": 1.0, "in": "flash-purple" },
+    { "id": "ramp3",   "beats": 1, "src": 32.4, "speed": 2.5, "in": "whip" },
+    { "id": "feat3",   "beats": 4, "src": 35.0, "speed": 1.0, "in": "zoom" },
+    { "id": "ramp4",   "beats": 1, "src": 17.4, "speed": 2.5, "in": "whip" },
+    { "id": "spray",   "beats": 4, "src": 18.6, "speed": 1.0, "in": "cut" },
+    { "id": "mont1",   "beats": 1, "src": 12.5, "speed": 1.6, "in": "flash-white" },
+    { "id": "mont2",   "beats": 1, "src": 36.3, "speed": 2.0, "in": "whip" },
+    { "id": "hero",    "beats": 4, "src": 37.3, "speed": 0.85, "in": "zoom" },
+    { "id": "endcard", "beats": 8, "in": "flash-purple" }
+  ],
+
+  "callouts": [
+    { "clip": "feat1", "lines": ["MAGNESIUM", "CHLORIDE 5.20%"], "icon": "droplet",
+      "anchor": { "ox": -0.30, "oy": -0.74 }, "box": { "x": 60,   "y": 1250, "align": "left" } },
+    { "clip": "feat2", "lines": ["MUSCLE RELAXANT", "SPRAY"], "icon": "flex",
+      "anchor": { "ox": -0.18, "oy": 0.75 },  "box": { "x": 60,   "y": 1430, "align": "left" } },
+    { "clip": "feat3", "lines": ["MUSCLE CARE", "ALL YEAR"], "icon": "shield",
+      "anchor": { "ox": 0.10,  "oy": 0.40 },  "box": { "x": 1020, "y": 1460, "align": "right" } }
+  ],
+
+  "spray": {
+    "clip": "spray", "burstAtSrc": 19.1,
+    "nozzle": [ { "t": 18.6, "x": 0.360, "y": 0.445 }, { "t": 19.1, "x": 0.360, "y": 0.450 },
+                { "t": 19.6, "x": 0.333, "y": 0.453 }, { "t": 20.1, "x": 0.347, "y": 0.445 } ],
+    "directionDeg": -35, "spreadDeg": 38, "particles": 90
+  },
+
+  "audio": { "music": false, "originalSound": true, "originalStartSec": 0, "originalVolume": 1.0, "sfx": true, "sfxVolume": 0.6 },
+
+  "impactBeats": [0, 1, 2, 3, 4, 5.5, 10, 15, 20, 26, 31, 35],
+
+  "grade": { "contrast": 1.16, "saturate": 1.38, "brightness": 1.03, "coolTint": 0.10, "bgBlurPx": 7, "bgDarken": 0.72 },
+
+  "previewSheetAtSec": [0.9, 6.2, 19.5]
+}

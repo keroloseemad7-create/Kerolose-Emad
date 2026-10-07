@@ -1,0 +1,117 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=15;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+function line(items,t,t0,dt=.18){let j=0;return items.map(it=>typeof it==='string'?wd(it,t,t0+(j++)*dt):wd(it.w,t,t0+(j++)*dt,it.c)).join(' ')}
+const HL=[
+  {t0:.3,t1:4.4,fs:62,l:[['السيستم','ده','هو',{w:'نتيجة',c:'#1f5fff'}],['اختبارات','وتجارب','وحملات','كتير'],['اشتغلنا','عليها،']]},
+  {t0:4.4,t1:8.3,fs:66,l:[['وشوفنا','إيه','اللي',{w:'بيشتغل،',c:'#1f5fff'}],['وإيه','اللي',{w:'ما',c:'#8b95a8'},{w:'بيشتغلش،',c:'#8b95a8'}]]},
+  {t0:8.3,t1:15.1,fs:62,l:[['وإزاي','كل','جزء','في',{w:'الـSystem',c:'#1f5fff'}],['بيأثر','على',{w:'النتيجة',c:'#1f5fff'},{w:'النهائية.',c:'#1f5fff'}]]},
+];
+// grid of experiments
+const CW=200,CHh=180,GX=95,GY=680,GAP=30;
+const LABELS=['TEST','A/B','CAMPAIGN','TEST','AD SET','A/B','CAMPAIGN','TEST','CONTENT','A/B','TEST','CAMPAIGN','AD SET','TEST','A/B','CONTENT'];
+const WIN=[1,4,6,11,14];                  // the experiments that worked
+const PARTS=['كول بسيطة','تحليل السوق','استراتيجية','Funnel','متابعة يومية'];
+const NODE=[[930,950],[735,870],[540,840],[345,870],[150,950]];
+const RX=540,RY=1430,RR=120;
+function card(i,t){
+  const c=i%4,r=Math.floor(i/4), x0=GX+c*(CW+GAP), y0=GY+r*(CHh+GAP);
+  const app=back(C(seg(t,.9+i*.13,1.3+i*.13)));
+  const win=WIN.includes(i), wi=WIN.indexOf(i);
+  // scan result (row by row)
+  const judged=t>4.9+r*.35, jk=back(C(seg(t,4.9+r*.35,5.2+r*.35)));
+  const fail=!win?eio(seg(t,6.6,7.4)):0;
+  // winners morph into system nodes
+  const mv=win?eio(seg(t,8.4+wi*.08,9.3+wi*.08)):0;
+  const [nx,ny]=win?NODE[wi]:[0,0];
+  const cx=L(x0+CW/2,nx,mv), cy=L(y0+CHh/2,ny,mv)+fail*60;
+  const w=L(CW,170,mv),h=L(CHh,170,mv),rad=L(22,85,mv);
+  const op=C(app*3)*(1-fail*.88)*(win?1:1-seg(t,8.4,9.0));
+  let s=`<g opacity="${op}" transform="translate(${cx},${cy}) scale(${app})" style="filter:grayscale(${fail})">`;
+  const glow=win&&judged?1:0;
+  s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${rad}" fill="#fff" stroke="${glow?BLUE:NAVY}" stroke-width="${glow?5:3}" style="filter:drop-shadow(0 10px 20px rgba(${glow?'31,95,255,.25':'11,31,77,.12'}))"/>`;
+  const inner=1-mv;
+  if(inner>0){
+    s+=`<g opacity="${inner}"><text x="${-w/2+18}" y="${-h/2+34}" font-size="18" fill="${GDK}" class="mono">${LABELS[i]} ${String(i+1).padStart(2,'0')}</text>`;
+    // live mini chart
+    let d='';for(let k=0;k<7;k++){const v=rnd(i*13+k)*.7+(win?k*.05:0)+Math.sin(t*2+k+i)*.05;d+=(k?' L':'M')+(-w/2+20+k*26)+' '+(h/2-30-v*70)}
+    s+=`<path d="${d}" fill="none" stroke="${win&&judged?BLUE:SKY}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  }
+  if(mv>0){ // node icon: label of the system part
+    s+=`<text y="22" text-anchor="middle" font-size="64" fill="${BLUE}" class="mono" style="font-weight:600!important" opacity="${seg(mv,.6,1)}">0${wi+1}</text>
+        <text y="-112" text-anchor="middle" font-size="32" fill="${NAVY}" opacity="${seg(mv,.6,1)}">${PARTS[wi]}</text>`;
+  }
+  // verdict badge
+  if(judged&&mv<.5){const bx=w/2-18,by=-h/2+18;
+    s+=win?`<g transform="translate(${bx},${by}) scale(${jk})"><circle r="24" fill="${BLUE}"/><path d="M-10 0 L-3 8 L11 -8" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`
+           :`<g transform="translate(${bx},${by}) scale(${jk})"><circle r="24" fill="${GRAY}"/><path d="M-8 -8 L8 8 M8 -8 L-8 8" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>`;
+  }
+  return s+'</g>';
+}
+function render(t){
+  let svg='',html='';
+  HL.forEach((h,i)=>{if(t<h.t0||t>h.t1)return;const out=i<2?seg(t,h.t1-.3,h.t1):0;let j=0;
+    html+=`<div class="abs ar" style="left:30px;right:30px;top:300px;font-size:${h.fs}px;line-height:1.35;opacity:${1-out};filter:blur(${out*10}px);transform:translateY(${-out*40}px)">${h.l.map(l=>{const s=line(l,t,h.t0+.15+j*.18);j+=l.length;return s}).join('<br>')}</div>`});
+  // scan beam over the grid
+  const sp=seg(t,4.7,6.4);
+  if(sp>0&&sp<1){const y=L(GY-20,GY+4*(CHh+GAP),eio(sp));
+    svg+=`<rect x="70" y="${y-70}" width="940" height="140" fill="url(#beam)"/><line x1="70" y1="${y}" x2="1010" y2="${y}" stroke="${BLUE}" stroke-width="5" style="filter:drop-shadow(0 0 10px ${BLUE})"/>`}
+  // system links -> result
+  if(t>9.2){
+    NODE.forEach(([x,y],i)=>{const lk=eo(seg(t,9.3+i*.1,9.9+i*.1));
+      const act=t>10.2+i*.7?1:0, pulse=Math.max(0,1-Math.abs(t-(10.2+i*.7+.35))/.35);
+      const wgt=[5,7,9,7,6][i];
+      svg+=`<line x1="${x}" y1="${y+85}" x2="${L(x,RX,lk)}" y2="${L(y+85,RY-RR,lk)}" stroke="${act?BLUE:GRAY}" stroke-width="${wgt+pulse*6}" stroke-linecap="round" opacity="${act?.9:.6}"/>`;
+      if(t>10.2+i*.7)for(let k=0;k<2;k++){const q=((t-(10.2+i*.7))*.9+k/2)%1;svg+=`<circle cx="${L(x,RX,q)}" cy="${L(y+85,RY-RR,q)}" r="8" fill="${BLUE}" opacity="${Math.sin(q*Math.PI)}"/>`}
+    });
+    // result node with 5 contribution segments
+    const rk=back(C(seg(t,9.4,9.9)));
+    let ring='';
+    for(let i=0;i<5;i++){const a0=-90+i*72+3,a1=-90+(i+1)*72-3, fk=eio(seg(t,10.4+i*.7,10.9+i*.7));
+      const r=Math.PI/180,R=RR+26,ae=L(a0,a1,fk);
+      ring+=`<path d="M${RX+R*Math.cos(a0*r)} ${RY+R*Math.sin(a0*r)} A${R} ${R} 0 0 1 ${RX+R*Math.cos(a1*r)} ${RY+R*Math.sin(a1*r)}" stroke="#eef2fb" stroke-width="18" fill="none" stroke-linecap="round"/>`;
+      if(fk>0)ring+=`<path d="M${RX+R*Math.cos(a0*r)} ${RY+R*Math.sin(a0*r)} A${R} ${R} 0 0 1 ${RX+R*Math.cos(ae*r)} ${RY+R*Math.sin(ae*r)}" stroke="${BLUE}" stroke-width="18" fill="none" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(31,95,255,.5))"/>`}
+    const done=seg(t,13.9,14.3), dp=back(done);
+    svg+=`<g opacity="${C(rk*3)}">${ring}<g transform="translate(${RX},${RY}) scale(${rk*(1+.08*Math.sin(done*Math.PI))})">
+      <circle r="${RR}" fill="${done>0?BLUE:NAVY}" style="filter:drop-shadow(0 18px 40px rgba(31,95,255,.35))"/>
+      <text y="-4" text-anchor="middle" font-size="46" fill="#fff">النتيجة</text>
+      <text y="40" text-anchor="middle" font-size="22" fill="${SKY}" class="mono">FINAL RESULT</text></g>
+      ${done>0?`<g transform="translate(${RX+RR*.8},${RY-RR*.8}) scale(${dp})"><circle r="34" fill="#fff" stroke="${BLUE}" stroke-width="5"/><path d="M-14 0 L-4 10 L15 -10" stroke="${BLUE}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`:''}</g>`;
+    if(done>0)for(let k=0;k<3;k++){const q=C((t-13.9-k*.2)/1.1);if(q>0&&q<1)svg+=`<circle cx="${RX}" cy="${RY}" r="${RR+40+q*200}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.45}"/>`}
+  }
+  for(let i=0;i<16;i++)svg+=card(i,t);
+  svg=`<defs><linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BLUE}" stop-opacity="0"/><stop offset=".5" stop-color="${BLUE}" stop-opacity=".15"/><stop offset="1" stop-color="${BLUE}" stop-opacity="0"/></linearGradient></defs>`+svg;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // BUILT FROM TESTING</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:15</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=9.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+// month-by-month cumulative progress (illustrative curve, ends exactly at the goal)
+const MT=[3.0,4.0,5.0,6.0,7.0], CUM=[0,.15,.38,.66,1];
+function progress(t){
+  if(t<MT[0])return 0; if(t>=MT[4])return 1;
+  const m=Math.floor(t-MT[0]); return L(CUM[m],CUM[m+1],eio(seg(t,MT[m],MT[m+1])));
+}
+const fmt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
+function render(t){
+  let svg='',html='';
+  // ---- "الهدف:" intro, then parks above the headline
+  const ik=seg(t,.2,.6), park=eio(seg(t,1.3,1.8));
+  html+=`<div class="abs ar" style="left:0;right:0;top:${L(820,250,park)}px;font-size:${L(170,58,park)}px;color:${park>.5?'#1f5fff':'#0b1f4d'};opacity:${ik};filter:blur(${(1-ik)*12}px)">الهدف:</div>`;
+  const uk=eo(seg(t,.6,1.2))*(1-park);
+  html+=`<div class="abs" style="left:${310+460*(1-uk)}px;top:1060px;width:${460*uk}px;height:6px;border-radius:3px;background:linear-gradient(270deg,rgba(11,31,77,.15),#1f5fff);box-shadow:0 0 16px rgba(31,95,255,.5);opacity:${uk>0?1:0}"></div>`;
+  const pill=back(C(seg(t,2.45,2.85)));
+  html+=`<div class="abs ar" style="left:0;right:0;top:340px;font-size:74px;line-height:1.35">${wd('مليون',t,1.8,'#1f5fff')} ${wd('جنيه',t,1.98)} ${wd('مبيعات',t,2.16)}<br>
+    ${wd('خلال',t,2.35)} <span class="w" style="background:#1f5fff;color:#fff;border-radius:26px;padding:0 30px;transform:scale(${pill});opacity:${C(pill*3)};box-shadow:0 14px 30px rgba(31,95,255,.35)">4 شهور</span><span class="w" style="opacity:${seg(t,2.8,2.9)}">.</span></div>`;
+
+  const p=progress(t), hit=seg(t,7.0,7.25);
+  // ---- target board
+  const tx=540,ty=860, tk=back(C(seg(t,2.6,3.1)));
+  const shake=t>7.25&&t<7.7?Math.sin(t*70)*6*(1-seg(t,7.25,7.7)):0;
+  svg+=`<g transform="translate(${tx+shake},${ty}) scale(${tk})" opacity="${C(tk*3)}">
+    <circle r="210" fill="none" stroke="#eef2fb" stroke-width="22"/>
+    ${p>0?`<circle r="210" fill="none" stroke="${BLUE}" stroke-width="22" stroke-linecap="round" pathLength="1" stroke-dasharray="${p} 1" transform="rotate(-90)" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.5))"/>`:''}
+    <circle r="160" fill="#fff" stroke="${NAVY}" stroke-width="6"/>
+    <circle r="115" fill="${p>=1?'#e8efff':'#fff'}" stroke="${NAVY}" stroke-width="6"/>
+    <circle r="70" fill="#fff" stroke="${BLUE}" stroke-width="10"/>
+    <circle r="28" fill="${BLUE}"/>
+    ${[0,1,2,3].map(i=>{const a=(-90-i*90)*Math.PI/180,done=t>=MT[i+1];return `<circle cx="${210*Math.cos(a)}" cy="${210*Math.sin(a)}" r="${done?16:11}" fill="${done?BLUE:'#fff'}" stroke="${done?'#fff':GRAY}" stroke-width="4"/>`}).join('')}
+  </g>`;
+  // dart flies in when the goal is reached
+  const dk=eio(seg(t,6.65,7.05));
+  if(dk>0){const dx=L(1250,tx+8,dk),dy=L(420,ty-8,dk);
+    svg+=`<g transform="translate(${dx+shake},${dy}) rotate(-38)">
+      <line x1="0" y1="0" x2="190" y2="0" stroke="${NAVY}" stroke-width="12" stroke-linecap="round"/>
+      <path d="M0 0 L26 -12 L26 12 Z" fill="${NAVY}"/>
+      <path d="M150 0 L200 -36 L214 -36 L176 0 L214 36 L200 36 Z" fill="${BLUE}"/></g>`}
+  if(hit>0)for(let k=0;k<3;k++){const q=C((t-7.05-k*.18)/1.1);if(q>0&&q<1)svg+=`<circle cx="${tx}" cy="${ty}" r="${230+q*240}" fill="none" stroke="${BLUE}" stroke-width="4" opacity="${(1-q)*.5}"/>`}
+
+  // ---- counter
+  const ck=seg(t,2.8,3.1), punch=t>7.05?1+.1*Math.sin(seg(t,7.05,7.5)*Math.PI):1;
+  html+=`<div class="abs" style="left:0;right:0;top:1120px;text-align:center;opacity:${ck}">
+    <div style="font:800 150px/1 Cairo;color:${p>=1?'#1f5fff':'#0b1f4d'};direction:ltr;transform:scale(${punch});text-shadow:${p>=1?'0 0 36px rgba(31,95,255,.35)':'none'}">${fmt(p*1e6)}</div>
+    <div class="ar" style="font-size:44px;color:#3a4a70;margin-top:10px">جنيه مبيعات</div></div>`;
+
+  // ---- 4 months (RTL: month 1 on the right)
+  const MX=[820,620,420,220], baseY=1700, maxH=230;
+  const mk=seg(t,2.9,3.2);
+  svg+=`<line x1="140" y1="${baseY}" x2="940" y2="${baseY}" stroke="${NAVY}" stroke-width="4" opacity="${mk}"/>`;
+  MX.forEach((x,i)=>{
+    const filled=C((p-CUM[i])/(CUM[i+1]-CUM[i])), cur=t>=MT[i]&&t<MT[i+1];
+    const hh=maxH*CUM[i+1]*eo(filled);
+    svg+=`<g opacity="${mk}">
+      <rect x="${x-60}" y="${baseY-maxH*CUM[i+1]}" width="120" height="${maxH*CUM[i+1]}" rx="14" fill="#f2f5fc" stroke="#e1e7f3" stroke-width="2"/>
+      ${hh>0?`<rect x="${x-60}" y="${baseY-hh}" width="120" height="${hh}" rx="14" fill="${i===3&&filled>=1?BLUE:cur?BLUE:SKY}" style="filter:drop-shadow(0 0 ${cur?10:0}px rgba(31,95,255,.5))"/>`:''}
+      <text x="${x}" y="${baseY+52}" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="34" fill="${cur||filled>=1?NAVY:GDK}">شهر ${i+1}</text>
+      ${filled>=1?`<g transform="translate(${x+50},${baseY-maxH*CUM[i+1]-10}) scale(${back(C(seg(t,MT[i+1],MT[i+1]+.3)))})"><circle r="20" fill="${BLUE}" stroke="#fff" stroke-width="3"/><path d="M-8 0 L-2 6 L9 -6" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`:''}
+    </g>`;
+  });
+  // goal line across the top of month 4
+  svg+=`<g opacity="${mk}"><line x1="140" y1="${baseY-maxH}" x2="940" y2="${baseY-maxH}" stroke="${BLUE}" stroke-width="3" stroke-dasharray="8 10"/>
+    <text x="940" y="${baseY-maxH-16}" text-anchor="end" font-size="24" fill="${BLUE}" class="mono">GOAL 1M</text></g>`;
+  // confetti on hit
+  if(t>7.05)for(let i=0;i<26;i++){const a=i*2.3,q=seg(t,7.05,8.6),r=q*(300+(i%5)*50);
+    const x=tx+Math.cos(a)*r,y=ty+Math.sin(a)*r+q*q*260;
+    svg+=`<rect x="${x}" y="${y}" width="14" height="${8+(i%3)*4}" rx="3" fill="${i%3?BLUE:i%2?SKY:NAVY}" transform="rotate(${i*40+q*400} ${x} ${y})" opacity="${1-q}"/>`}
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // THE GOAL</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:0${Math.floor(t)} / 00:09</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>

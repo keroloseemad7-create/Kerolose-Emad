@@ -1,0 +1,91 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=9;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+// foundation blocks (RTL order: Experience on the right)
+const FB=[{x:720,en:'Experience',ar:'خبرة',t:1.25,icon:'star'},{x:400,en:'Data',ar:'بيانات',t:1.6,icon:'data'},{x:80,en:'Results',ar:'نتايج',t:1.95,icon:'chart'}];
+const FW=280,FY=1440,FH=200;
+function icon(k){const s=`stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  return {star:`<path d="M0 -30 L9 -10 L30 -8 L14 6 L19 28 L0 16 L-19 28 L-14 6 L-30 -8 L-9 -10 Z" ${s}/>`,
+    data:`<ellipse cx="0" cy="-20" rx="28" ry="9" ${s}/><path d="M-28 -20 L-28 20 Q0 32 28 20 L28 -20" ${s}/><path d="M-28 0 Q0 12 28 0" ${s}/>`,
+    chart:`<path d="M-28 24 L-28 -26 M-28 24 L30 24" ${s}/><path d="M-20 12 L-6 -2 L6 6 L26 -18" ${s}/><path d="M14 -18 L26 -18 L26 -6" ${s}/>`}[k]}
+function render(t){
+  let svg='';
+  // ground
+  const gk=eo(seg(t,.9,1.4));
+  svg+=`<line x1="${540-480*gk}" y1="${FY+FH+4}" x2="${540+480*gk}" y2="${FY+FH+4}" stroke="${NAVY}" stroke-width="6" stroke-linecap="round"/>`;
+  // building floors rise on the foundation
+  const FL=5, flH=104, bx=110, bw=860;
+  for(let i=0;i<FL;i++){
+    const st=3.0+i*.42, k=seg(t,st,st+.5);if(k<=0)continue;
+    const y=FY-(i+1)*(flH+8), drop=L(-500,0,back(k));
+    let win='';for(let j=0;j<8;j++){const lit=seg(t,st+.45+j*.05+((i+j)%3)*.08,st+.6+j*.05+((i+j)%3)*.08);
+      const flick=lit>0?.75+.25*Math.sin(t*3+i*2+j):0;
+      win+=`<rect x="${bx+40+j*100}" y="${y+28}" width="64" height="48" rx="8" fill="${lit>0?BLUE:'#eef2fb'}" opacity="${lit>0?flick:1}"/>`}
+    svg+=`<g transform="translate(0,${drop})" opacity="${C(k*4)}">
+      <rect x="${bx}" y="${y}" width="${bw}" height="${flH}" rx="14" fill="#fff" stroke="${NAVY}" stroke-width="4" style="filter:drop-shadow(0 10px 18px rgba(11,31,77,.12))"/>${win}</g>`;
+  }
+  // roof badge
+  const rk=back(C(seg(t,5.3,5.8))), topY=FY-FL*(flH+8);
+  svg+=`<g transform="translate(540,${topY-62}) scale(${rk})" opacity="${C(rk*3)}">
+    <rect x="-300" y="-46" width="600" height="92" rx="46" fill="${BLUE}" style="filter:drop-shadow(0 14px 30px rgba(31,95,255,.4))"/>
+    <text y="15" text-anchor="middle" font-size="44" fill="#fff">Pharma Growth System</text></g>`;
+  if(t>5.8)for(let k=0;k<2;k++){const q=((t-5.8)*.7+k*.5)%1;svg+=`<ellipse cx="540" cy="${topY-62}" rx="${300+q*120}" ry="${46+q*60}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.4}"/>`}
+  // energy rising from the foundation through the building
+  if(t>3.2)FB.forEach((b,i)=>{for(let k=0;k<2;k++){const q=((t-3.2)*.55+k/2+i*.17)%1, cx=b.x+FW/2;
+    const top=FY-Math.min(FL,Math.floor((t-3.0)/.42)+1)*(flH+8);
+    svg+=`<rect x="${cx-4}" y="${L(FY,top,q)-30}" width="8" height="40" rx="4" fill="${SKY}" opacity="${Math.sin(q*Math.PI)*.9}"/>`}});
+  // foundation blocks
+  FB.forEach((b,i)=>{
+    const k=back(C(seg(t,b.t,b.t+.45))), y=FY+L(-380,0,eo(C(seg(t,b.t,b.t+.4))));
+    const glow=t>3.0?.5+.5*Math.sin(t*3+i):0;
+    svg+=`<g opacity="${C(seg(t,b.t,b.t+.12))}" transform="translate(${b.x+FW/2},${y+FH/2}) scale(${k}) translate(${-FW/2},${-FH/2})">
+      <rect width="${FW}" height="${FH}" rx="24" fill="${NAVY}" style="filter:drop-shadow(0 ${10+glow*8}px ${20+glow*16}px rgba(31,95,255,${.2+glow*.25}))"/>
+      <g transform="translate(${FW/2},62)">${icon(b.icon)}</g>
+      <text x="${FW/2}" y="138" text-anchor="middle" font-size="40" fill="#fff">${b.en}</text>
+      <text x="${FW/2}" y="178" text-anchor="middle" font-size="26" fill="${SKY}">${b.ar}</text></g>`;
+    // landing dust
+    const dq=seg(t,b.t+.38,b.t+.8);
+    if(dq>0&&dq<1)svg+=`<g opacity="${1-dq}">${[-1,1].map(s=>`<circle cx="${b.x+FW/2+s*(FW/2+dq*40)}" cy="${FY+FH-6}" r="${6+dq*8}" fill="${GRAY}"/>`).join('')}</g>`;
+    // verified tick
+    const vk=back(C(seg(t,b.t+.5,b.t+.8)));
+    svg+=`<g transform="translate(${b.x+FW-14},${FY+14}) scale(${vk})"><circle r="24" fill="${BLUE}" stroke="#fff" stroke-width="4"/><path d="M-10 0 L-3 8 L11 -8" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  });
+  // foundation label
+  svg+=`<text x="540" y="${FY+FH+70}" text-anchor="middle" font-size="30" fill="${GDK}" class="mono" opacity="${seg(t,2.4,2.8)}">FOUNDATION</text>`;
+  const html=`<div class="abs ar" style="left:30px;right:30px;top:290px;font-size:74px;line-height:1.35">
+    ${wd('إحنا',t,.3)} ${wd('بنبني',t,.5)} ${wd('على',t,.7)}<br>
+    ${wd('Experience',t,1.2,'#1f5fff')} ${wd('و',t,1.45)} ${wd('Data',t,1.55,'#1f5fff')} ${wd('و',t,1.8)} ${wd('Results',t,1.9,'#1f5fff')}<br>
+    ${wd('حصلت',t,2.3)} ${wd('بالفعل.',t,2.5)}</div>`;
+  const drift=1+seg(t,0,DUR)*.025;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // BUILT ON PROOF</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:0${Math.floor(t)} / 00:09</div>
+    <div class="abs" style="inset:0;transform:scale(${drift});transform-origin:50% 60%"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>

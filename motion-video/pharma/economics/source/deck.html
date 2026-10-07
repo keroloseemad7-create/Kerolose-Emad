@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pharma Growth System</title>
+<style>
+:root{--bg:#050E24;--bg2:#0A1A3A;--card:rgba(18,41,106,.55);--line:rgba(90,176,255,.28);--txt:#EAF1FF;--mut:#B9CCF0;--blue:#5AB0FF;--gold:#F5C04A;--green:#4ADE9A}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Segoe UI',Calibri,Arial,sans-serif;color:var(--txt)}
+#bg{position:fixed;inset:0;background:radial-gradient(circle at 20% 15%,#16336f 0,transparent 45%),radial-gradient(circle at 85% 90%,#0f3a86 0,transparent 40%),var(--bg)}
+#cv{position:fixed;inset:0}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(90,176,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(90,176,255,.06) 1px,transparent 1px);background-size:80px 80px;animation:gm 20s linear infinite}
+@keyframes gm{to{background-position:80px 80px}}
+.decor{position:absolute;inset:0;pointer-events:none;transition:transform .2s}
+.w{position:absolute;background:rgba(14,36,92,.45);border:1px solid var(--line);border-radius:22px;padding:18px 22px;backdrop-filter:blur(6px);opacity:0;animation:wi 1.2s forwards,fl 7s ease-in-out infinite;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+@keyframes wi{to{opacity:.34}}
+@keyframes fl{50%{transform:translateY(-14px)}}
+.w small{display:block;font-size:15px;letter-spacing:2px;color:var(--blue);text-transform:uppercase;font-weight:700}
+.w b{font-size:34px;color:var(--txt)}
+.w svg{display:block;margin-top:8px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:10px}
+.bars i{flex:1;background:linear-gradient(var(--blue),#1E4BA8);border-radius:5px 5px 0 0;transition:height 1s}
+.slide{position:absolute;inset:0;padding:100px 130px 110px;opacity:0;pointer-events:none;transform:translateX(60px) scale(.98);transition:opacity .6s,transform .6s;display:flex;flex-direction:column;gap:34px}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.prev{transform:translateX(-60px) scale(.98)}
+.slide.active [data-a]{animation:rise .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*.11s + .15s)}
+@keyframes rise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.eb{font-size:24px;font-weight:700;letter-spacing:6px;color:var(--blue);text-transform:uppercase}
+h1{font-size:104px;line-height:1.05;font-weight:800;max-width:1400px}
+h2{font-size:66px;line-height:1.1;font-weight:800;max-width:1500px}
+.lead{font-size:34px;color:var(--mut);line-height:1.4;max-width:1300px}
+.gold{color:var(--gold)}.row{display:flex;gap:32px}.col{display:flex;flex-direction:column;gap:20px}
+.card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:40px;backdrop-filter:blur(10px);transition:transform .25s,box-shadow .25s,border-color .25s;transform-style:preserve-3d}
+.card:hover{border-color:var(--blue);box-shadow:0 0 50px rgba(90,176,255,.25)}
+.card h3{font-size:36px;color:var(--gold);margin-bottom:14px}
+.card p,.card li{font-size:29px;color:var(--mut);line-height:1.45}
+.card ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.card li::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--blue);margin-right:16px}
+.num{font-size:84px;font-weight:800;color:var(--gold);line-height:1}
+.gcard{background:linear-gradient(135deg,#F8CC63,#E9A92A);color:#0A1A3A}.gcard h3,.gcard p{color:#0A1A3A}
+.foot{position:absolute;left:130px;bottom:40px;font-size:20px;color:#7F98C9}
+.ico{width:76px;height:76px;border-radius:20px;background:rgba(90,176,255,.15);display:grid;place-items:center;font-size:38px;margin-bottom:18px;border:1px solid var(--line)}
+/* nav */
+#prog{position:fixed;left:0;top:0;height:5px;background:linear-gradient(90deg,var(--blue),var(--gold));z-index:50;transition:width .5s}
+#dots{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:50}
+#dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.22);cursor:pointer;transition:.3s}
+#dots i.on{background:var(--gold);transform:scale(1.5)}
+.nb{position:fixed;top:50%;z-index:50;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:rgba(10,26,58,.7);color:#fff;font-size:26px;cursor:pointer;transform:translateY(-50%);backdrop-filter:blur(6px);transition:.2s}
+.nb:hover{background:var(--blue);color:#06142e}
+#pv{left:14px}#nx{right:14px}
+#hint{position:fixed;right:20px;bottom:10px;font-size:13px;color:#7F98C9;z-index:50}
+#notes{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);max-width:900px;background:rgba(5,14,36,.92);border:1px solid var(--line);border-radius:16px;padding:16px 22px;font-size:17px;color:var(--mut);z-index:60;display:none;line-height:1.5}
+/* funnel */
+.fn{border-radius:22px;padding:30px 40px;cursor:pointer;display:flex;align-items:center;gap:30px;transition:.3s;border:2px solid transparent;font-size:30px}
+.fn b{font-size:42px;width:230px}
+.fn:hover,.fn.sel{transform:translateX(14px);border-color:#fff;box-shadow:0 0 40px rgba(90,176,255,.4)}
+#fdet{flex:1;min-height:420px}
+/* calc */
+.sl{display:flex;flex-direction:column;gap:16px}
+.sl label{display:flex;justify-content:space-between;font-size:26px;color:var(--mut)}.sl label b{color:var(--txt)}
+input[type=range]{-webkit-appearance:none;width:100%;height:10px;border-radius:6px;background:rgba(90,176,255,.25);outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 18px var(--gold)}
+.split{display:flex;height:64px;border-radius:16px;overflow:hidden;font-size:22px;font-weight:700}
+.split div{display:grid;place-items:center;transition:flex .5s;white-space:nowrap;overflow:hidden}
+/* loop */
+.orbit{position:relative;width:420px;height:420px;flex:none}
+.orbit .ring{position:absolute;inset:30px;border:3px dashed var(--line);border-radius:50%;animation:spin 14s linear infinite}
+.orbit span{position:absolute;width:150px;padding:12px;text-align:center;background:var(--card);border:1px solid var(--blue);border-radius:16px;font-size:22px;font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pl 2.4s infinite}@keyframes pl{50%{box-shadow:0 0 60px rgba(245,192,74,.5)}}
+.bar{height:56px;border-radius:14px;width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;padding-left:24px;font-size:30px;font-weight:800}
+.chip{display:inline-block;padding:14px 28px;border-radius:999px;background:rgba(90,176,255,.14);border:1px solid var(--line);font-size:28px;font-weight:700;transition:.25s;cursor:default}
+.chip:hover{background:var(--blue);color:#06142e;transform:translateY(-6px)}
+</style></head><body>
+<div id="bg"></div><canvas id="cv"></canvas>
+<div id="prog"></div>
+<div id="stage">
+ <div class="grid"></div><div class="decor" id="decor"></div>
+ <div id="slides">
+
+<section class="slide">
+ <p class="eb" data-a>Pharma Growth System</p>
+ <h1 data-a>From zero to <span class="gold">1M EGP</span> in sales in 4 months</h1>
+ <p class="lead" data-a>A digital acquisition system for pharma and vitamin brands that want to grow beyond offline sales.</p>
+ <div class="row" data-a style="margin-top:20px"><span class="chip">Offer</span><span class="chip">Funnel</span><span class="chip">Data loop</span><span class="chip">Scale</span></div>
+ <p class="gold" data-a style="font-size:28px;font-weight:700">Mohamed Samir &nbsp;|&nbsp; Strategy Digital Marketing Agency</p>
+ <aside>Welcome. In this video I will show you the Pharma Growth System and why it works.</aside>
+</section>
+
+<section class="slide" style="justify-content:center">
+ <p class="eb" data-a>The big promise</p>
+ <h1 data-a style="font-size:92px">1M EGP in sales within <span class="gold">4 months</span>, or we keep working for free until we get there.</h1>
+ <div class="row" data-a style="align-items:center;margin-top:10px">
+  <div class="card pulse" style="flex:none;width:420px"><div class="num" data-count="4" data-dec="0">0</div><p>months to the goal</p></div>
+  <p class="lead" style="max-width:1000px">Built for pharma owners with OTC products already on the market who still depend mainly on offline sales.</p></div>
+ <aside>The guarantee applies when the agreed scope and conditions are respected.</aside>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>The pain</p>
+ <h2 data-a>Is your growth keeping pace with your products?</h2>
+ <div class="row" style="align-items:center;gap:60px">
+  <div class="orbit" data-a>
+   <div class="ring"></div>
+   <span style="left:135px;top:0">Rep visits</span><span style="right:-10px;top:170px">Doctor</span><span style="left:135px;bottom:0">Pharmacy</span><span style="left:-10px;top:170px">Follow up</span>
+   <div class="gold" style="position:absolute;inset:0;display:grid;place-items:center;font-size:30px;font-weight:800">LOOP</div>
+  </div>
+  <div class="col" style="flex:1">
+   <div class="card" data-a><h3>The loop never ends</h3><p>Meet the doctor, convince, follow up, then follow up with the pharmacy, then repeat.</p></div>
+   <div class="card" data-a><h3>More sales = more people</h3><p>Growth only comes from more effort, more reps and more visits.</p></div>
+  </div>
+ </div>
+ <aside>Ask the audience if their sales truly grow as fast as they should.</aside>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Why it hurts</p>
+ <h2 data-a>Offline growth is expensive, and online feels risky.</h2>
+ <div class="row">
+  <div class="card" data-a><div class="ico">&#128101;</div><h3>Offline</h3><p>To grow you must add reps, visits, discounts and incentives. Cost rises with every step.</p></div>
+  <div class="card" data-a><div class="ico">&#128200;</div><h3>Online</h3><p>You cannot tell if marketing will pay back, and past agencies left owners disappointed.</p></div>
+  <div class="card" data-a><div class="ico">&#129513;</div><h3>The gap</h3><p>No clear system turns good products into steady demand and sales.</p></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Who we are</p>
+ <h2 data-a>Mohamed Samir, Founder of Strategy Digital Marketing Agency</h2>
+ <div class="row">
+  <div class="card" data-a style="flex:none;width:520px"><div class="num" style="font-size:150px" data-count="10" data-dec="0">0</div><p>years in digital marketing, hundreds of brands</p></div>
+  <div class="card" data-a style="justify-content:center;display:flex;flex-direction:column;gap:20px">
+   <p style="color:var(--blue);font-weight:700;letter-spacing:3px;font-size:24px">PHARMA AND HEALTHCARE BRANDS</p>
+   <div class="row" style="gap:16px;flex-wrap:wrap"><span class="chip">Optimed Pharma</span><span class="chip">Novo</span><span class="chip">Bari Med</span></div>
+   <p>We build full acquisition systems, not just ads.</p></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Case study</p>
+ <h2 data-a>From 1.3M to about 5M EGP in roughly 6 months</h2>
+ <div class="col" style="gap:26px;margin-top:10px" data-a>
+  <div style="font-size:26px;color:var(--mut)">Before: yearly sales</div>
+  <div class="bar" data-w="26" style="background:linear-gradient(90deg,#2a5cc2,#5AB0FF)"><span><span data-count="1.3" data-dec="1">0</span>M EGP</span></div>
+  <div style="font-size:26px;color:var(--mut);margin-top:10px">After: about 6 months</div>
+  <div class="bar" data-w="100" style="background:linear-gradient(90deg,#E9A92A,#F8CC63);color:#0A1A3A"><span>~<span data-count="5" data-dec="0">0</span>M EGP</span></div>
+ </div>
+ <p class="lead" data-a style="font-size:28px">Offer, creative strategy, funnel, budget split, retargeting and data analysis.</p>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Root cause</p>
+ <h2 data-a>You do not need more ads. You need a system behind them.</h2>
+ <div class="row">
+  <div class="card" data-a><div class="num">1</div><h3 style="margin-top:14px">Budget expertise</h3><p>Know when to build an audience, test creative, scale or stop.</p></div>
+  <div class="card" data-a><div class="num">2</div><h3 style="margin-top:14px">A clear funnel</h3><p>Move people from awareness to interest, intent and purchase.</p></div>
+  <div class="card" data-a><div class="num">3</div><h3 style="margin-top:14px">A data loop</h3><p>Every campaign teaches us who engages, watches, visits and buys.</p></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>The system &nbsp;|&nbsp; click a stage</p>
+ <h2 data-a>One funnel, three stages</h2>
+ <div class="row" style="gap:50px;align-items:flex-start">
+  <div class="col" style="width:860px" data-a>
+   <div class="fn sel" data-f="0" style="background:#1E4BA8;width:860px"><b>Top</b>Awareness and audience</div>
+   <div class="fn" data-f="1" style="background:#163B86;width:720px"><b>Middle</b>Trust and intent</div>
+   <div class="fn" data-f="2" style="background:#F5C04A;color:#0A1A3A;width:580px"><b>Bottom</b>Offers and CTA</div>
+  </div>
+  <div class="card" id="fdet" data-a></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Stage 1 &nbsp;|&nbsp; Top of funnel</p>
+ <h2 data-a>Make people aware of the problem first</h2>
+ <p class="lead" data-a>Many people do not know they have the problem our product solves. We do not say "buy now". We explain the problem, its risks and our products.</p>
+ <div class="row" data-a><span class="chip">Designs</span><span class="chip">Product albums</span><span class="chip">Educational content</span><span class="chip">UGC videos</span></div>
+ <div class="card" data-a style="flex:none;display:flex;align-items:center;gap:30px"><div class="num" data-count="50" data-dec="0">0</div><p style="font-size:34px;color:var(--txt)">% video views, then retarget the people who watched that much.</p></div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Stage 2 &nbsp;|&nbsp; Middle of funnel</p>
+ <h2 data-a>Turn "I saw the brand" into "I want this product"</h2>
+ <p class="lead" data-a>We do not repeat the message. We show our products, how they solve the problem, and build trust and intent.</p>
+ <div class="row" data-a><span class="chip">Problem</span><span class="chip">Solution</span><span class="chip">Benefits</span><span class="chip">Proof</span><span class="chip">Testimonials</span></div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Stage 3 &nbsp;|&nbsp; Bottom of funnel</p>
+ <h2 data-a>Convert interest into action</h2>
+ <div class="row">
+  <div class="card" data-a><h3>We use</h3><ul><li>Offers</li><li>Strong creatives</li><li>A clear CTA</li></ul></div>
+  <div class="card" data-a><h3>We target</h3><ul><li>People who saw the content</li><li>Visitors to the product</li><li>People who engaged and showed intent</li></ul></div>
+ </div>
+ <p class="gold" data-a style="font-size:30px;font-weight:700">The offer is one part of the conversion system, not the whole funnel.</p>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Timeline</p>
+ <h2 data-a>About two weeks to launch, then we optimize</h2>
+ <div class="row">
+  <div class="card" data-a><h3>Weeks 1 to 2: foundations</h3><ul><li>Offer and audience</li><li>Creative direction</li><li>Funnel and tracking</li><li>Campaign structure</li><li>Website</li></ul></div>
+  <div class="card" data-a><h3>After launch: optimize</h3><ul><li>Collect data</li><li>Repeat what works</li><li>Stop what does not</li><li>Scale budget in a measured way</li></ul></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>What we need from you</p>
+ <h2 data-a>Three essentials</h2>
+ <div class="row">
+  <div class="card" data-a><div class="ico">&#128138;</div><h3>Real products</h3><p>Products already selling in the market.</p></div>
+  <div class="card" data-a><div class="ico">&#9989;</div><h3>History and results</h3><p>Proof that the product has demand.</p></div>
+  <div class="card" data-a><div class="ico">&#9889;</div><h3>Willingness to invest</h3><p>Real commitment to marketing spend.</p></div>
+ </div>
+</section>
+
+<section class="slide" style="gap:22px">
+ <p class="eb" data-a>Economics &nbsp;|&nbsp; illustration only &nbsp;|&nbsp; drag the sliders</p>
+ <h2 data-a style="font-size:56px">What 1M EGP in sales could mean</h2>
+ <div class="row" style="gap:50px">
+  <div class="col" style="width:760px;gap:26px" data-a>
+   <div class="sl"><label>Selling price <b id="vp"></b></label><input type="range" id="p" min="100" max="1500" step="10" value="500"></div>
+   <div class="sl"><label>Product cost <b id="vc"></b></label><input type="range" id="c" min="0" max="800" step="10" value="100"></div>
+   <div class="sl"><label>Ads cost per unit <b id="va"></b></label><input type="range" id="a" min="0" max="800" step="10" value="100"></div>
+   <div class="sl"><label>Shipping and fulfillment <b id="vs"></b></label><input type="range" id="s" min="0" max="500" step="10" value="100"></div>
+   <div class="sl"><label>Sales target (EGP) <b id="vt"></b></label><input type="range" id="t" min="250000" max="3000000" step="50000" value="1000000"></div>
+  </div>
+  <div class="col" style="flex:1;gap:20px" data-a>
+   <div class="split" id="sp"></div>
+   <div class="row"><div class="card"><p>Contribution per unit</p><div class="num" id="o1" style="font-size:50px;white-space:nowrap"></div></div><div class="card"><p>Units to sell</p><div class="num" id="o3" style="font-size:64px;color:var(--blue)"></div></div></div>
+   <div class="card gcard"><p>Gross profit at target</p><div class="num" id="o2" style="font-size:80px;color:#0A1A3A"></div></div>
+  </div>
+ </div>
+ <p data-a style="font-size:22px;color:var(--mut)">Figures in EGP. Actual results depend on product, COGS, CAC, shipping, returns and operating costs.</p>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>Qualification</p>
+ <h2 data-a>We do not work with every pharma company</h2>
+ <div class="row">
+  <div class="card" data-a style="flex:2"><h3>A good fit has</h3><ul><li>More than one product</li><li>Products on the market for a while</li><li>Real proof and history</li><li>A budget of about 70K to 100K EGP per month</li></ul></div>
+  <div class="card gcard" data-a style="flex:1;display:flex;flex-direction:column;justify-content:center"><div class="num" style="font-size:190px;color:#0A1A3A" data-count="3" data-dec="0">0</div><p style="font-size:32px;font-weight:700">companies accepted per quarter</p></div>
+ </div>
+</section>
+
+<section class="slide">
+ <p class="eb" data-a>The call and the guarantee</p>
+ <h2 data-a>We understand your business first</h2>
+ <div class="row">
+  <div class="card" data-a><h3>On the call we ask</h3><ul><li>What do you sell?</li><li>What are your margins?</li><li>What are your sales today?</li><li>How does your marketing run?</li><li>What goal do you want to reach?</li></ul></div>
+  <div class="card gcard pulse" data-a><h3>Shared risk</h3><p style="font-size:34px;font-weight:600;line-height:1.4">If we keep to the agreed scope and conditions and miss the agreed goal, we keep working with no extra fees until we reach it.</p></div>
+ </div>
+</section>
+
+<section class="slide" style="justify-content:center">
+ <p class="eb" data-a>Next step</p>
+ <h1 data-a>Book your call <span class="gold">now</span></h1>
+ <p class="lead" data-a>Let us see whether your company is one of the 3 we work with in the next batch.</p>
+ <p class="gold" data-a style="font-size:28px;font-weight:700">Strategy Digital Marketing Agency</p>
+</section>
+
+ </div>
+ <div class="foot" id="foot"></div>
+</div>
+<button class="nb" id="pv">&#8249;</button><button class="nb" id="nx">&#8250;</button>
+<div id="dots"></div><div id="hint">Arrows / click to navigate &nbsp;|&nbsp; F fullscreen &nbsp;|&nbsp; N notes</div><div id="notes"></div>
+<script>
+const stage=document.getElementById('stage'),slides=[...document.querySelectorAll('.slide')],decor=document.getElementById('decor');
+let cur=0;
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(${(innerWidth-1920*s)/2}px,${(innerHeight-1080*s)/2}px) scale(${s})`}
+addEventListener('resize',fit);fit();
+// dots
+const dots=document.getElementById('dots');slides.forEach((_,i)=>{const d=document.createElement('i');d.onclick=()=>go(i);dots.appendChild(d)});
+// stagger index
+slides.forEach(s=>s.querySelectorAll('[data-a]').forEach((e,i)=>e.style.setProperty('--i',i)));
+// count up
+function countUp(sl){sl.querySelectorAll('[data-count]').forEach(e=>{const t=parseFloat(e.dataset.count),d=+e.dataset.dec,t0=performance.now();(function f(n){const k=Math.min(1,(n-t0)/1400),v=t*(1-Math.pow(1-k,3));e.textContent=v.toFixed(d);if(k<1)requestAnimationFrame(f)})(t0)});
+ sl.querySelectorAll('.bar').forEach(b=>{b.style.width='0';setTimeout(()=>b.style.width=b.dataset.w+'%',500)})}
+// decor widgets
+let seed=1;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+const pos=[[1380,90],[1450,690],[70,740],[1080,820]];
+let timers=[];
+function buildDecor(i){timers.forEach(clearInterval);timers=[];decor.innerHTML="";if(i===13)return;seed=i*97+13;
+ const kinds=['spark','bars','kpi','ring'];
+ [0,1,2].forEach(k=>{const kind=kinds[(i+k)%4],[x,y]=pos[(k+i)%4],w=document.createElement('div');w.className='w';w.style.cssText=`left:${x}px;top:${y}px;animation-delay:${k*.25}s,${k*1.1}s;width:${kind==='kpi'?300:380}px`;
+  if(kind==='spark'){w.innerHTML='<small>Revenue</small><b>+<span>0</span>%</b><svg width="340" height="70"><polyline fill="none" stroke="#5AB0FF" stroke-width="4" stroke-linejoin="round"/></svg>';const pl=w.querySelector('polyline'),sp=w.querySelector('span');let a=Array.from({length:20},(_,j)=>40-j*1+rnd()*14);const up=()=>{a.push(Math.max(8,Math.min(62,a[a.length-1]+(rnd()-.35)*16)));a.shift();pl.setAttribute('points',a.map((v,j)=>`${j*18},${70-v}`).join(' '));sp.textContent=(a[19]*2.4).toFixed(0)};up();timers.push(setInterval(up,1100))}
+  if(kind==='bars'){w.innerHTML='<small>Orders</small><div class="bars">'+Array.from({length:9},()=>'<i></i>').join('')+'</div>';const bs=[...w.querySelectorAll('i')];const up=()=>bs.forEach(b=>b.style.height=(15+rnd()*85)+'%');up();timers.push(setInterval(up,1500))}
+  if(kind==='kpi'){w.innerHTML='<small>CPA</small><b><span>92</span> EGP</b><small style="color:var(--green);margin-top:6px">improving</small>';const sp=w.querySelector('span');timers.push(setInterval(()=>sp.textContent=(70+rnd()*30).toFixed(0),1300))}
+  if(kind==='ring'){w.innerHTML='<small>Conversion</small><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="60" fill="none" stroke="rgba(90,176,255,.2)" stroke-width="14"/><circle cx="75" cy="75" r="60" fill="none" stroke="#F5C04A" stroke-width="14" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="200" transform="rotate(-90 75 75)" style="transition:1s"/></svg>';const c=w.querySelectorAll('circle')[1];timers.push(setInterval(()=>c.style.strokeDashoffset=377*(1-(.3+rnd()*.6)),1500))}
+  decor.appendChild(w)})}
+// funnel
+const FD=[['Top of funnel','Build awareness and an audience','Designs, product albums, educational content, UGC videos and video views. Retarget viewers who watched about 50%.'],['Middle of funnel','Build trust and intent','Problem, solution, benefits, proof, testimonials and product usage. The person moves from "I saw the brand" to "I want this".'],['Bottom of funnel','Convert with offers and a CTA','Offers, strong creatives and a clear call to action aimed at the most interested people.']];
+function setF(n){document.querySelectorAll('.fn').forEach((e,i)=>e.classList.toggle('sel',i==n));const d=document.getElementById('fdet');d.innerHTML=`<h3>${FD[n][0]}</h3><p class="gold" style="font-size:34px;font-weight:700;margin-bottom:16px">${FD[n][1]}</p><p>${FD[n][2]}</p>`}
+document.querySelectorAll('.fn').forEach(e=>{e.onclick=()=>setF(e.dataset.f);e.onmouseenter=()=>setF(e.dataset.f)});setF(0);
+// calc
+const $=id=>document.getElementById(id),f=n=>Math.round(n).toLocaleString('en-US');
+function calc(){const p=+$('p').value,c=+$('c').value,a=+$('a').value,s=+$('s').value,t=+$('t').value,m=p-c-a-s,u=t/p;
+ $('vp').textContent=p;$('vc').textContent=c;$('va').textContent=a;$('vs').textContent=s;$('vt').textContent=f(t);
+ $('o1').textContent=f(m)+'  |  '+Math.round(m/p*100)+'%';$('o3').textContent=f(u);$('o2').textContent=f(u*m)+' EGP';
+ const seg=[['Cost',c,'#2a5cc2'],['Ads',a,'#5AB0FF'],['Ship',s,'#8aa6d8'],['Profit',Math.max(m,0),'#F5C04A']];
+ $('sp').innerHTML=seg.map(x=>`<div style="flex:${Math.max(x[1],.001)};background:${x[2]};color:${x[0]=='Profit'?'#0A1A3A':'#fff'}">${x[1]>p*.1?x[0]:''}</div>`).join('')}
+['p','c','a','s','t'].forEach(i=>$(i).oninput=calc);calc();
+// tilt
+document.querySelectorAll('.card').forEach(c=>{c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(900px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-4px)`});c.addEventListener('mouseleave',()=>c.style.transform='')});
+// nav
+function go(n,dir){n=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>{s.classList.remove('active','prev');if(i===n)s.classList.add('active');else if(i<n)s.classList.add('prev')});
+ const was=cur;cur=n;[...dots.children].forEach((d,i)=>d.classList.toggle('on',i===n));document.getElementById('prog').style.width=((n+1)/slides.length*100)+'%';
+ document.getElementById('foot').textContent='Pharma Growth System  |  '+String(n+1).padStart(2,'0')+' / '+slides.length;
+ buildDecor(n);countUp(slides[n]);const a=slides[n].querySelector('aside');document.getElementById('notes').textContent=a?a.textContent:'';
+ try{history.replaceState(null,'','#'+(n+1))}catch(e){}}
+document.querySelectorAll('aside').forEach(a=>a.style.display='none');
+$('nx').onclick=()=>go(cur+1);$('pv').onclick=()=>go(cur-1);
+addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}else if(['ArrowLeft','PageUp'].includes(e.key))go(cur-1);else if(e.key==='Home')go(0);else if(e.key==='End')go(99);else if(e.key==='f'||e.key==='F')document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();else if(e.key==='n'||e.key==='N'){const n=$('notes');n.style.display=n.style.display==='block'?'none':'block'}});
+let tx=null;addEventListener('touchstart',e=>tx=e.touches[0].clientX);addEventListener('touchend',e=>{if(tx===null)return;const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>60)go(cur+(d<0?1:-1));tx=null});
+// parallax
+addEventListener('mousemove',e=>{decor.style.transform=`translate(${(e.clientX/innerWidth-.5)*-30}px,${(e.clientY/innerHeight-.5)*-20}px)`});
+// particles
+const cv=$('cv'),cx=cv.getContext('2d');let W,Hh,P=[],mx=-999,my=-999;
+function rs(){W=cv.width=innerWidth;Hh=cv.height=innerHeight;P=Array.from({length:Math.floor(W*Hh/17000)},()=>({x:Math.random()*W,y:Math.random()*Hh,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5}))}
+addEventListener('resize',rs);rs();addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function draw(){cx.clearRect(0,0,W,Hh);P.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>Hh)p.vy*=-1;const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy);if(d<140){p.x+=dx/d*1.5;p.y+=dy/d*1.5}
+ cx.fillStyle='rgba(120,190,255,.7)';cx.beginPath();cx.arc(p.x,p.y,2,0,7);cx.fill();
+ for(let j=i+1;j<P.length;j++){const q=P[j],l=Math.hypot(p.x-q.x,p.y-q.y);if(l<150){cx.strokeStyle=`rgba(90,176,255,${.22*(1-l/150)})`;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}});requestAnimationFrame(draw)})();
+let h0=1;try{h0=parseInt(location.hash.slice(1))||1}catch(e){}go(Math.max(0,h0-1));
+</script></body></html>

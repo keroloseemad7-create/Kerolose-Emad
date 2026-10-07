@@ -1,0 +1,154 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=15.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+function line(items,t,t0,dt=.18){let j=0;return items.map(it=>typeof it==='string'?wd(it,t,t0+(j++)*dt):wd(it.w,t,t0+(j++)*dt,it.c)).join(' ')}
+const BL='#1f5fff';
+const HL=[
+  {t0:.3,t1:4.3,fs:72,l:[['فاهم',{w:'احتياجاتهم',c:BL}],['وفاهم','شكل',{w:'العميل',c:BL},'بتاعهم']]},
+  {t0:4.3,t1:9.2,fs:72,l:[['وإزاي','نقدر',{w:'نوصله',c:BL}]],l2:{t0:6.6,l:['ونقنعه',{w:'بينا',c:BL}]}},
+  {t0:9.2,t1:15.6,fs:58,l:[['ونبقى','إحنا',{w:'اختيار',c:BL},{w:'دائم',c:BL},'عنده'],['لما','بيفكر','في',{w:'صحته',c:BL}],['وإزاي','يهتم','بيها']]},
+];
+const AX=540,AY=1180;
+function avatar(x,y,s,smile,look){
+  return `<g transform="translate(${x},${y}) scale(${s})">
+    <circle r="150" fill="${BLUE}" opacity=".07"/>
+    <path d="M-100 150 Q-100 40 0 40 Q100 40 100 150 Z" fill="${NAVY}"/>
+    <circle cy="-30" r="66" fill="#fff" stroke="${NAVY}" stroke-width="7"/>
+    <circle cx="${-22+look*8}" cy="-36" r="9" fill="${NAVY}"/><circle cx="${22+look*8}" cy="-36" r="9" fill="${NAVY}"/>
+    <path d="M-20 -2 Q0 ${L(10,26,smile)} 20 -2" stroke="${NAVY}" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </g>`;
+}
+function tag(x,y,k,txt,icon,op){
+  return `<g transform="translate(${x},${y}) scale(${k})" opacity="${op}">
+    <rect x="${130-(110+txt.length*21)}" y="-40" width="${110+txt.length*21}" height="80" rx="40" fill="#fff" stroke="${BLUE}" stroke-width="4" style="filter:drop-shadow(0 10px 20px rgba(31,95,255,.18))"/>
+    <circle cx="88" r="24" fill="${BLUE}"/>${icon}
+    <text x="40" y="12" text-anchor="end" font-size="34" fill="${NAVY}">${txt}</text></g>`;
+}
+const IC={
+  heart:`<path transform="translate(88,2) scale(.8)" d="M0 14 C-22 -2 -18 -22 -5 -22 C0 -22 0 -16 0 -14 C0 -16 0 -22 5 -22 C18 -22 22 -2 0 14 Z" fill="#fff"/>`,
+  shield:`<path transform="translate(88,0)" d="M0 -14 L12 -9 L12 2 Q12 10 0 15 Q-12 10 -12 2 L-12 -9 Z" fill="#fff"/>`,
+  tag:`<g transform="translate(88,0)"><path d="M-12 -12 L4 -12 L13 -2 L-1 12 L-12 1 Z" fill="#fff"/><circle cx="-5" cy="-5" r="3" fill="${BLUE}"/></g>`,
+  pin:`<g transform="translate(88,2)"><path d="M0 12 C-12 0 -12 -14 0 -14 C12 -14 12 0 0 12 Z" fill="#fff"/><circle cy="-4" r="4" fill="${BLUE}"/></g>`,
+};
+function render(t){
+  let svg='',html='';
+  HL.forEach((h,i)=>{if(t<h.t0||t>h.t1)return;const out=i<2?seg(t,h.t1-.3,h.t1):0;let j=0;
+    let lines=h.l.map(l=>{const s=line(l,t,h.t0+.15+j*.18);j+=l.length;return s});
+    if(h.l2)lines.push(line(h.l2.l,t,h.l2.t0));
+    html+=`<div class="abs ar" style="left:30px;right:30px;top:290px;font-size:${h.fs}px;line-height:1.35;opacity:${1-out};filter:blur(${out*10}px);transform:translateY(${-out*40}px)">${lines.join('<br>')}</div>`});
+
+  // ---------- avatar (always centre)
+  const ak=back(C(seg(t,.5,1.0)));
+  const smile=L(0,1,seg(t,7.6,8.2)), look=t<4.3?Math.sin(t*1.5)*.5:t<6.6?Math.sin(t*3)*.7:0;
+  // ---- beat 1: needs around the customer + persona scan + profile
+  const b1out=seg(t,4.1,4.5);
+  if(t<4.6){
+    const P=[[250,880,'الصحة','heart'],[830,880,'الثقة','shield'],[230,1400,'السعر','tag'],[850,1400,'سهولة الوصول','pin']];
+    P.forEach(([x,y,txt,ic],i)=>{const k=back(C(seg(t,1.0+i*.25,1.4+i*.25)));
+      const lk=eo(seg(t,1.0+i*.25,1.5+i*.25));
+      svg+=`<line x1="${AX}" y1="${AY-40}" x2="${L(AX,x,lk)}" y2="${L(AY-40,y,lk)}" stroke="${SKY}" stroke-width="3" stroke-dasharray="6 8" opacity="${(1-b1out)*.8}"/>`;
+      svg+=tag(x+Math.sin(t*1.6+i)*6,y+Math.cos(t*1.4+i)*6,k,txt,IC[ic],C(k*3)*(1-b1out))});
+    // scanning lens
+    const sp=seg(t,2.3,3.6);
+    if(sp>0&&sp<1){const sx=L(AX-140,AX+140,eio(sp));
+      svg+=`<g transform="translate(${sx},${AY-60})"><circle r="90" fill="rgba(31,95,255,.08)" stroke="${BLUE}" stroke-width="8"/><line x1="64" y1="64" x2="120" y2="120" stroke="${BLUE}" stroke-width="16" stroke-linecap="round"/></g>`}
+    // persona profile under the avatar
+    const pk=eo(seg(t,2.8,3.2));
+    svg+=`<g opacity="${pk*(1-b1out)}" transform="translate(0,${(1-pk)*40})">
+      <rect x="290" y="1500" width="500" height="250" rx="26" fill="#fff" stroke="${NAVY}" stroke-width="3" style="filter:drop-shadow(0 12px 24px rgba(11,31,77,.12))"/>
+      <text x="750" y="1550" text-anchor="end" font-size="32" fill="${NAVY}">بروفايل العميل</text>
+      ${['اهتماماته','سلوكه','احتياجاته'].map((r,i)=>{const f=eio(seg(t,3.1+i*.2,3.8+i*.2))*[.8,.65,.9][i];
+        return `<text x="750" y="${1610+i*50}" text-anchor="end" font-size="26" fill="${GDK}">${r}</text>
+          <rect x="330" y="${1593+i*50}" width="280" height="16" rx="8" fill="#eef2fb"/><rect x="${330+280*(1-f)}" y="${1593+i*50}" width="${280*f}" height="16" rx="8" fill="${BLUE}"/>`}).join('')}
+    </g>`;
+  }
+  // ---- beat 2: reach — channels send signals, target lock
+  if(t>4.3&&t<7.2){
+    const out=seg(t,6.7,7.1);
+    const CH=[[230,800,'ads'],[540,740,'social'],[850,800,'search']];
+    CH.forEach(([x,y,k],i)=>{const ck=back(C(seg(t,4.5+i*.15,4.9+i*.15)));
+      const s=`stroke="${BLUE}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+      const ic={ads:`<path d="M-20 -6 L-4 -6 L14 -20 L14 20 L-4 6 L-20 6 Z" ${s}/>`,social:`<rect x="-14" y="-24" width="28" height="48" rx="6" ${s}/><circle cy="16" r="2" fill="${BLUE}"/>`,search:`<circle cx="-4" cy="-4" r="14" ${s}/><line x1="6" y1="6" x2="18" y2="18" ${s}/>`}[k];
+      svg+=`<g opacity="${(1-out)*C(ck*3)}"><line x1="${x}" y1="${y}" x2="${AX}" y2="${AY-80}" stroke="${NAVY}" stroke-width="3" stroke-dasharray="6 8" opacity=".35"/>`;
+      if(t>5.0)for(let q0=0;q0<2;q0++){const q=((t-5)*1.0+q0/2+i*.2)%1;svg+=`<circle cx="${L(x,AX,q)}" cy="${L(y,AY-80,q)}" r="8" fill="${BLUE}" opacity="${Math.sin(q*Math.PI)}"/>`}
+      svg+=`<g transform="translate(${x},${y}) scale(${ck})"><circle r="56" fill="#fff" stroke="${NAVY}" stroke-width="4"/>${ic}</g></g>`});
+    // lock-on brackets close in
+    const lk=eio(seg(t,5.2,5.9)), r=L(360,200,lk);
+    const br=(sx,sy)=>`<path d="M${AX+sx*r} ${AY+sy*r-sy*60} L${AX+sx*r} ${AY+sy*r} L${AX+sx*r-sx*60} ${AY+sy*r}" stroke="${BLUE}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+    svg+=`<g opacity="${C(lk*4)*(1-out)}">${br(-1,-1)}${br(1,-1)}${br(-1,1)}${br(1,1)}</g>`;
+    svg+=`<text x="${AX}" y="${AY+260}" text-anchor="middle" font-size="26" fill="${BLUE}" class="mono" opacity="${seg(t,5.8,6.0)*(1-out)}">● REACHED</text>`;
+  }
+  // ---- beat 3: convince — chat + trust meter
+  if(t>6.6&&t<9.6){
+    const out=seg(t,9.1,9.5);
+    const b1=back(C(seg(t,6.8,7.1))), b2=back(C(seg(t,7.4,7.7)));
+    const typing=t<7.4?[0,1,2].map(i=>`<circle cx="${-30+i*30}" cy="0" r="9" fill="#fff" opacity="${.4+.6*Math.max(0,Math.sin(t*10-i))}"/>`).join(''):'';
+    svg+=`<g opacity="${1-out}">
+      <g transform="translate(300,850) scale(${b1})"><rect x="-150" y="-56" width="300" height="112" rx="30" fill="${BLUE}"/><path d="M80 50 L120 90 L120 50 Z" fill="${BLUE}"/>
+        ${typing||`<text y="12" text-anchor="middle" font-size="32" fill="#fff">ده اللي محتاجه</text>`}</g>
+      <g transform="translate(790,920) scale(${b2})"><rect x="-120" y="-50" width="240" height="100" rx="30" fill="#eef2fb" stroke="${NAVY}" stroke-width="3"/><path d="M-80 46 L-110 84 L-60 46 Z" fill="#eef2fb" stroke="${NAVY}" stroke-width="3"/>
+        <text y="12" text-anchor="middle" font-size="34" fill="${NAVY}">مقتنع 👍</text></g>`;
+    const tf=eio(seg(t,7.6,8.8));
+    svg+=`<g opacity="${seg(t,7.5,7.7)}"><text x="790" y="1530" text-anchor="end" font-size="34" fill="${NAVY}">الثقة</text>
+        <rect x="290" y="1550" width="500" height="26" rx="13" fill="#eef2fb"/><rect x="${290+500*(1-tf)}" y="1550" width="${500*tf}" height="26" rx="13" fill="${BLUE}" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.5))"/>
+        <text x="290" y="1530" font-size="30" fill="${BLUE}" class="mono">${Math.round(tf*100)}%</text></g>`;
+    for(let i=0;i<4;i++){const q=seg(t,8.3+i*.18,9.3+i*.18);if(q>0&&q<1)svg+=`<g transform="translate(${AX-120+i*80+Math.sin(q*8)*14},${AY-150-q*200}) scale(${1.2})" opacity="${1-q}"><path d="M0 14 C-22 -2 -18 -22 -5 -22 C0 -22 0 -16 0 -14 C0 -16 0 -22 5 -22 C18 -22 22 -2 0 14 Z" fill="${BLUE}"/></g>`}
+    svg+=`</g>`;
+  }
+  // ---- beat 4: the permanent choice — thought bubble + infinity loop
+  if(t>9.2){
+    const tk=back(C(seg(t,9.5,10.0)));
+    svg+=`<g transform="translate(${AX+150},${AY-330}) scale(${tk})" opacity="${C(tk*3)}">
+      <circle cx="-150" cy="200" r="14" fill="#fff" stroke="${NAVY}" stroke-width="4"/><circle cx="-110" cy="150" r="22" fill="#fff" stroke="${NAVY}" stroke-width="4"/>
+      <path d="M-170 40 Q-210 -40 -130 -70 Q-110 -140 -20 -120 Q40 -170 110 -110 Q200 -110 190 -20 Q240 40 170 90 Q140 150 50 120 Q-20 160 -80 120 Q-180 130 -170 40 Z" fill="#fff" stroke="${NAVY}" stroke-width="5"/>
+      <text x="10" y="-30" text-anchor="middle" font-size="36" fill="${NAVY}" opacity="${seg(t,10.0,10.3)}">صحتي؟</text>
+      <g transform="translate(10,40) scale(${back(C(seg(t,10.6,11.0)))})"><rect x="-110" y="-38" width="220" height="76" rx="38" fill="${BLUE}" style="filter:drop-shadow(0 10px 20px rgba(31,95,255,.35))"/>
+        <g transform="translate(70,0)"><rect x="-5" y="-16" width="10" height="32" rx="2" fill="#fff"/><rect x="-16" y="-5" width="32" height="10" rx="2" fill="#fff"/></g>
+        <text x="-20" y="14" text-anchor="middle" font-size="38" fill="#fff" class="mono" style="font-weight:600!important">PGS</text></g>
+    </g>`;
+    // infinity loop with a travelling dot = always the choice
+    const ik=eio(seg(t,11.2,12.2)), iy=1590;
+    const inf=`M540 ${iy} C600 ${iy-90} 760 ${iy-90} 760 ${iy} C760 ${iy+90} 600 ${iy+90} 540 ${iy} C480 ${iy-90} 320 ${iy-90} 320 ${iy} C320 ${iy+90} 480 ${iy+90} 540 ${iy}`;
+    svg+=`<path d="${inf}" fill="none" stroke="#eef2fb" stroke-width="18" opacity="${seg(t,11.1,11.3)}"/>
+      <path id="inf" d="${inf}" fill="none" stroke="${BLUE}" stroke-width="18" stroke-linecap="round" pathLength="1" stroke-dasharray="${ik} 1" opacity="${ik>0.005?1:0}" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.45))"/>`;
+    if(t>12.2){const d=((t-12.2)*.35)%1;svg+=`<g id="dot" data-p="${d}"></g>`}
+    svg+=`<text x="540" y="${iy+150}" text-anchor="middle" font-size="40" fill="${NAVY}" opacity="${seg(t,12.2,12.6)}">اختيار دائم</text>`;
+  }
+  svg+=avatar(AX,AY,1.15*ak,smile,look);
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // KNOW THE CUSTOMER</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:15</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg id="sv" class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+  // place the travelling dot on the infinity path (deterministic)
+  const dot=document.getElementById('dot'), path=document.getElementById('inf');
+  if(dot&&path){const p=+dot.dataset.p, pt=path.getPointAtLength(p*path.getTotalLength());
+    dot.innerHTML=`<circle cx="${pt.x}" cy="${pt.y}" r="18" fill="#fff" stroke="${NAVY}" stroke-width="7"/>`;}
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>

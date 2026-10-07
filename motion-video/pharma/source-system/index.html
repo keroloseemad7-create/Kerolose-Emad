@@ -1,0 +1,148 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--paper:#fbfbf7;--rule:rgba(60,110,190,.16);--margin:rgba(214,64,64,.32);--navy:#0b1f4d;--blue:#1f5fff;--sky:#7ea6ff;--dim:#8592a8}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--paper)}
+#stage{position:absolute;inset:0;overflow:hidden}
+.abs{position:absolute}
+.paper{position:absolute;inset:0;background-color:#ffffff;background-image:
+  linear-gradient(rgba(60,110,190,.20) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(60,110,190,.20) 1.5px,transparent 1.5px),
+  linear-gradient(rgba(60,110,190,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(60,110,190,.13) 1px,transparent 1px);
+  background-size:180px 180px,180px 180px,36px 36px,36px 36px;background-position:0 0}
+.shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(20,30,60,.10));pointer-events:none}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--dim);letter-spacing:.08em}
+svg text{font-family:Cairo,sans-serif}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=12.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff';
+const HX=540,HY=860,R=350;
+const MODS=[
+  {ar:'كول بسيطة',en:'DISCOVERY CALL',icon:'phone'},
+  {ar:'تحليل السوق',en:'MARKET DATA',icon:'scan'},
+  {ar:'استراتيجية لكل منتج',en:'STRATEGY',icon:'target'},
+  {ar:'Funnel كاملة',en:'FULL FUNNEL',icon:'funnel'},
+  {ar:'متابعة النتايج يوميًا',en:'DAILY TRACKING',icon:'chart'},
+];
+MODS.forEach((m,i)=>{const a=(-90+i*72)*Math.PI/180;m.x=HX+R*Math.cos(a);m.y=HY+R*Math.sin(a);m.t0=1.5+i*.28});
+
+function icon(kind,col,t){
+  const s=`stroke="${col}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  switch(kind){
+    case 'scan':{const b=[18,30,24].map((h,i)=>`<rect x="${-30+i*18}" y="${18-h-((Math.sin(t*4+i)+1)*4)}" width="11" height="${h+((Math.sin(t*4+i)+1)*4)}" rx="2" fill="${col}" opacity=".35"/>`).join('');
+      return b+`<circle cx="4" cy="-6" r="22" ${s}/><line x1="20" y1="10" x2="36" y2="26" ${s}/>`}
+    case 'target':return `<circle r="34" ${s}/><circle r="21" ${s}/><circle r="${7+Math.sin(t*6)*2}" fill="${col}"/>`;
+    case 'mega':return `<path d="M-30 -10 L-8 -10 L24 -30 L24 30 L-8 10 L-30 10 Z" ${s}/><path d="M-20 10 L-14 30" ${s}/>`+
+      [0,1].map(k=>{const p=(t*1.2+k*.5)%1;return `<path d="M${34+p*14} -14 Q${42+p*18} 0 ${34+p*14} 14" ${s} opacity="${1-p}"/>`}).join('');
+    case 'team':return `<circle cx="-16" cy="-14" r="11" ${s}/><path d="M-36 26 Q-16 -2 4 26" ${s}/><circle cx="18" cy="-10" r="10" ${s}/><path d="M4 24 Q18 2 36 24" ${s}/>`;
+    case 'phone':{const r=(t*2)%1;return `<path d="M-26 -30 Q-34 -22 -30 -8 Q-20 18 6 28 Q20 34 28 24 L30 18 L14 6 L4 14 Q-12 6 -18 -10 L-10 -20 L-20 -34 Z" ${s} fill="${col}" fill-opacity=".12"/>`+
+      [0,1].map(k=>`<path d="M${12+k*10} ${-24-k*10} A${16+k*12} ${16+k*12} 0 0 1 ${30+k*12} ${-6-k*2}" ${s} opacity="${(Math.sin(t*6-k)+1)/2}"/>`).join('')}
+    case 'funnel':return `<path d="M-36 -30 L36 -30 L8 4 L8 30 L-8 22 L-8 4 Z" ${s}/>`+
+      [0,1,2].map(k=>{const p=(t*.9+k/3)%1;return `<circle cx="${L(-20+k*20,0,p)}" cy="${L(-46,26,p)}" r="5" fill="${col}" opacity="${Math.sin(p*Math.PI)}"/>`}).join('');
+    case 'chart':return `<path d="M-34 28 L-34 -32 M-34 28 L36 28" ${s}/><path d="M-26 16 L-8 0 L6 8 L30 -22" ${s}/><path d="M18 -22 L30 -22 L30 -10" ${s}/>`;
+  }
+}
+// moving data packets along a line
+function packets(x1,y1,x2,y2,t,speed,n,op,col=BLUE){
+  let s='';for(let k=0;k<n;k++){const p=((t*speed)+k/n)%1;
+    s+=`<circle cx="${L(x1,x2,p)}" cy="${L(y1,y2,p)}" r="7" fill="${col}" opacity="${op*Math.sin(p*Math.PI)}" style="filter:drop-shadow(0 0 6px ${col})"/>`}
+  return s;
+}
+function render(t){
+  // camera: system shifts up when the dashboard enters; nodes implode at the end
+  const lift=eio(seg(t,6.0,6.8)), implode=eio(seg(t,9.9,10.6)), endK=seg(t,10.5,11);
+  const sysS=L(1,.74,lift), sysY=L(0,-300,lift);
+  let g='';
+  // orbit ring
+  const ringK=eo(seg(t,.9,1.8));
+  g+=`<circle cx="${HX}" cy="${HY}" r="${R}" fill="none" stroke="${SKY}" stroke-width="3" stroke-dasharray="10 16" stroke-dashoffset="${-t*40}" opacity="${ringK*.8*(1-implode)}"/>`;
+  g+=`<circle cx="${HX}" cy="${HY}" r="${R+60}" fill="none" stroke="${SKY}" stroke-width="1.5" stroke-dasharray="2 12" stroke-dashoffset="${t*30}" opacity="${ringK*.5*(1-implode)}"/>`;
+  // cycle arrows between neighbouring modules (the loop of the system)
+  MODS.forEach((m,i)=>{
+    const a0=(-90+i*72+16),a1=(-90+(i+1)*72-16),k=seg(t,3.2+i*.15,3.7+i*.15)*(1-implode);
+    if(k<=0)return;const r=R,rad=d=>d*Math.PI/180;
+    const ae=L(a0,a1,k);
+    g+=`<path d="M${HX+r*Math.cos(rad(a0))} ${HY+r*Math.sin(rad(a0))} A${r} ${r} 0 0 1 ${HX+r*Math.cos(rad(ae))} ${HY+r*Math.sin(rad(ae))}" fill="none" stroke="${BLUE}" stroke-width="5" stroke-linecap="round"/>`;
+    const ax=HX+r*Math.cos(rad(ae)),ay=HY+r*Math.sin(rad(ae));
+    g+=`<g transform="translate(${ax},${ay}) rotate(${ae+90})" opacity="${C(k*3)*Math.pow(1-implode,4)}"><path d="M-12 -9 L2 0 L-12 9" fill="none" stroke="${BLUE}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    // packet running along the loop
+    if(t>3.8){const p=((t-3.8)*.55+i/5)%1, ap=rad(L(a0,a1,p));
+      g+=`<circle cx="${HX+r*Math.cos(ap)}" cy="${HY+r*Math.sin(ap)}" r="8" fill="${SKY}" opacity="${(1-implode)*Math.sin(p*Math.PI)}"/>`}
+  });
+  // spokes hub -> modules
+  MODS.forEach((m,i)=>{
+    const k=eo(seg(t,m.t0-.2,m.t0+.3));if(k<=0)return;
+    const mx=L(m.x,HX,implode),my=L(m.y,HY,implode);
+    const sx=HX+(mx-HX)*.38,sy=HY+(my-HY)*.38, ex=L(sx,HX+(mx-HX)*.74,k),ey=L(sy,HY+(my-HY)*.74,k);
+    g+=`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${NAVY}" stroke-width="3" stroke-dasharray="6 8" opacity="${.55*(1-implode)}"/>`;
+    if(t>m.t0+.4)g+=packets(sx,sy,HX+(mx-HX)*.74,HY+(my-HY)*.74,t,.9,2,1-implode);
+  });
+  // modules
+  MODS.forEach((m,i)=>{
+    const a=t-m.t0;if(a<0)return;
+    const k=back(C(a/.5)), mx=L(m.x,HX,implode),my=L(m.y,HY,implode), sc=k*(1-implode*.8);
+    // node pulses when the loop packet arrives
+    const pulse=t>3.8?Math.pow(Math.max(0,Math.cos(((t-3.8)*.55+i/5)%1*Math.PI*2)),12):0;
+    const lab=C((a-.25)/.3)*(1-implode);
+    g+=`<g transform="translate(${mx},${my}) scale(${sc})" opacity="${C(a/.15)*(1-implode*.9)}">
+      <circle r="${108+pulse*14}" fill="${BLUE}" opacity="${.10+pulse*.15}"/>
+      <rect x="-82" y="-82" width="164" height="164" rx="34" fill="#fff" stroke="${pulse>.3?BLUE:NAVY}" stroke-width="4" style="filter:drop-shadow(0 12px 22px rgba(11,31,77,.18))"/>
+      <g>${icon(m.icon,i%2?BLUE:NAVY,t)}</g>
+      <text y="${m.y>HY+50?136:-108}" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="38" font-weight="800" fill="${NAVY}" opacity="${lab}">${m.ar}</text>
+      <text y="${m.y>HY+50?172:-150}" text-anchor="middle" font-size="20" fill="${SKY}" style="font-family:'JetBrains Mono';letter-spacing:.15em" opacity="${lab}">${m.en}</text>
+    </g>`;
+  });
+  // hub
+  const hk=back(C(seg(t,.2,.9))), hr=128*hk*L(1,1.25,implode)*(1-endK*.2);
+  for(let k=0;k<3;k++){const p=((t*.6)+k/3)%1;
+    g+=`<circle cx="${HX}" cy="${HY}" r="${hr+p*170}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-p)*.45*seg(t,.6,1.2)}"/>`}
+  g+=`<circle cx="${HX}" cy="${HY}" r="${hr}" fill="${NAVY}" style="filter:drop-shadow(0 18px 40px rgba(31,95,255,.45))"/>
+      <circle cx="${HX}" cy="${HY}" r="${hr*.82}" fill="none" stroke="${SKY}" stroke-width="3" stroke-dasharray="14 10" stroke-dashoffset="${t*60}" opacity=".8"/>
+      <g transform="translate(${HX},${HY}) rotate(${t*90})" opacity="${seg(t,.5,.9)}"><path d="M0 ${-hr*.95} A${hr*.95} ${hr*.95} 0 0 1 ${hr*.95} 0" fill="none" stroke="${SKY}" stroke-width="6" stroke-linecap="round"/></g>
+      <text x="${HX}" y="${HY+30*hk}" text-anchor="middle" font-size="${88*hk*(1-endK*.2)}" font-weight="800" fill="#fff" opacity="${seg(t,.5,.8)}">PGS</text>`;
+  const sys=`<g transform="translate(0,${sysY}) translate(${HX},${HY}) scale(${sysS}) translate(${-HX},${-HY})">${g}</g>`;
+
+  // dashboard fed by the system
+  let d='';const dk=eo(seg(t,6.3,7.0))*(1-eio(seg(t,9.7,10.2)));
+  if(dk>0){
+    const dx=90,dy=L(1960,1180,dk),dw=900,dh=520;
+    const hubY=HY+sysY+128*sysS;
+    d+=`<line x1="${HX}" y1="${hubY}" x2="${HX}" y2="${dy}" stroke="${NAVY}" stroke-width="3" stroke-dasharray="6 8" opacity=".5"/>`+packets(HX,hubY,HX,dy,t,1.1,3,dk);
+    d+=`<g transform="translate(${dx},${dy})">
+      <rect width="${dw}" height="${dh}" rx="30" fill="#fff" stroke="${NAVY}" stroke-width="3" style="filter:drop-shadow(0 20px 40px rgba(11,31,77,.18))"/>
+      <text x="${dw-40}" y="66" text-anchor="end" font-size="40" font-weight="800" fill="${NAVY}">مؤشر النمو</text>
+      <text x="40" y="62" font-size="20" fill="${SKY}" style="font-family:'JetBrains Mono';letter-spacing:.15em">LIVE ●</text>`;
+    const bars=[.28,.36,.33,.5,.62,.78,.95];
+    bars.forEach((b,i)=>{const bk=eo(seg(t,7.0+i*.12,7.6+i*.12)),h=b*300*bk;
+      d+=`<rect x="${60+i*112}" y="${470-h}" width="64" height="${h}" rx="10" fill="${i==bars.length-1?BLUE:SKY}" opacity="${i==bars.length-1?1:.45}"/>`});
+    const pts=bars.map((b,i)=>[92+i*112,470-b*300-40]);
+    const lk=eio(seg(t,7.6,9.0));
+    const path='M'+pts.map(p=>p.join(' ')).join(' L');
+    d+=`<path d="${path}" fill="none" stroke="${NAVY}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${1-lk}"/>`;
+    const seg_i=Math.min(pts.length-2,Math.floor(lk*(pts.length-1))),f=lk*(pts.length-1)-seg_i;
+    const hx=L(pts[seg_i][0],pts[seg_i+1][0],f),hy=L(pts[seg_i][1],pts[seg_i+1][1],f);
+    if(lk>0)d+=`<circle cx="${hx}" cy="${hy}" r="${12+Math.sin(t*10)*2}" fill="${BLUE}" style="filter:drop-shadow(0 0 10px ${BLUE})"/>`;
+    const ak=back(C(seg(t,9.0,9.4)));
+    d+=`<g transform="translate(${pts[6][0]+50},${pts[6][1]-10}) scale(${ak})"><circle r="34" fill="${BLUE}"/><path d="M0 14 L0 -14 M-11 -3 L0 -14 L11 -3" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    d+=`<line x1="40" y1="470" x2="${dw-40}" y2="470" stroke="${NAVY}" stroke-width="2" opacity=".3"/></g>`;
+  }
+  // end title
+  const tk=seg(t,10.8,11.3), uk=eo(seg(t,11.2,11.9));
+  const ty=HY+sysY+128*sysS*(1-endK*.45)+130;
+  const title=tk>0?`<div class="abs" style="left:0;right:0;top:${L(1080,1030,eo(tk))}px;text-align:center;font:800 84px Cairo;color:${BLUE};opacity:${tk};filter:blur(${(1-tk)*10}px);text-shadow:0 0 26px rgba(31,95,255,.35)">Pharma Growth System</div>
+     <div class="abs" style="left:${130+820*(1-uk)}px;top:1170px;width:${820*uk}px;height:5px;border-radius:3px;background:linear-gradient(270deg,rgba(11,31,77,.15),${BLUE});box-shadow:0 0 18px rgba(31,95,255,.5)"></div>`:'';
+  // end: hub returns to centre-ish
+  const sysEnd=`<div class="abs" style="inset:0;transform:translateY(${endK*230}px)"><svg class="abs" width="${W}" height="${H}">${sys}${d}</svg></div>`;
+  document.getElementById('stage').innerHTML=`<div class="paper"></div>
+    <div class="lbl abs" style="left:70px;top:110px">PGS // SYSTEM MAP</div>
+    <div class="lbl abs" style="right:150px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:12</div>
+    ${sysEnd}${title}<div class="shade"></div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>

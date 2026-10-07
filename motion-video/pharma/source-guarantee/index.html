@@ -1,0 +1,141 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+.iso{direction:ltr;unicode-bidi:isolate;display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=15;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+function line(items,t,t0,dt=.2){let j=0;return items.map(it=>{
+  if(typeof it==='string')return wd(it,t,t0+(j++)*dt);
+  if(it.g)return `<span class="iso">${it.g.map(w=>wd(w,t,t0+(j++)*dt,it.c)).join(' ')}</span>`;
+  return wd(it.w,t,t0+(j++)*dt,it.c)}).join(' ')}
+const HL=[
+  {t0:1.7,t1:4.1,l:[['لو','التزمنا',{w:'بالـScope',c:'#1f5fff'}],['والشروط','المتفق','عليها']]},
+  {t0:4.1,t1:5.8,l:[['وما','وصلناش',{w:'للهدف،',c:'#1f5fff'}]]},
+  {t0:5.8,t1:10.4,l:[['هنستمر','نشتغل','معاك'],['بدون','أي',{g:['Management','fees'],c:'#1f5fff'},'إضافية']]},
+  {t0:10.4,t1:15.1,l:[['لحد','ما','نوصل'],[{w:'للنتيجة',c:'#1f5fff'},'المتفق','عليها.']]},
+];
+const check=(x,y,k,r=24)=>`<g transform="translate(${x},${y}) scale(${k})"><circle r="${r}" fill="${BLUE}"/><path d="M${-r*.42} 0 L${-r*.12} ${r*.32} L${r*.45} ${-r*.32}" stroke="#fff" stroke-width="${r*.22}" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+
+function render(t){
+  let svg='',html='';
+  // ---------- intro "والأهم:" then it parks above the headlines
+  const ik=seg(t,.2,.6), park=eio(seg(t,1.3,1.8));
+  html+=`<div class="abs ar" style="left:0;right:0;top:${L(820,230,park)}px;font-size:${L(150,52,park)}px;color:${park>.5?'#1f5fff':'#0b1f4d'};opacity:${ik};filter:blur(${(1-ik)*12}px)">والأهم:</div>`;
+  const uk=eo(seg(t,.6,1.2))*(1-park);
+  html+=`<div class="abs" style="left:${300+480*(1-uk)}px;top:1040px;width:${480*uk}px;height:6px;border-radius:3px;background:linear-gradient(270deg,rgba(11,31,77,.15),#1f5fff);box-shadow:0 0 16px rgba(31,95,255,.5);opacity:${uk>0?1:0}"></div>`;
+  // ---------- headlines
+  HL.forEach((h,i)=>{if(t<h.t0||t>h.t1)return;const out=i<3?seg(t,h.t1-.3,h.t1):0;let j=0;
+    html+=`<div class="abs ar" style="left:30px;right:30px;top:320px;font-size:${i===2?60:70}px;line-height:1.35;opacity:${1-out};filter:blur(${out*10}px);transform:translateY(${-out*40}px)">${h.l.map(l=>{const s=line(l,t,h.t0+.15+j*.2);j+=l.length;return s}).join('<br>')}</div>`});
+
+  // ---------- 1) the agreement document
+  if(t>1.8&&t<6.4){
+    const dk=eo(seg(t,1.9,2.4)), out=eio(seg(t,5.6,6.2));
+    const y=L(820,640,out);
+    svg+=`<g transform="translate(0,${(1-dk)*80+(y-820)})" opacity="${dk*(1-out)}">
+      <rect x="230" y="660" width="620" height="660" rx="30" fill="#fff" stroke="${NAVY}" stroke-width="4" style="filter:drop-shadow(0 18px 34px rgba(11,31,77,.14))"/>
+      <rect x="230" y="660" width="620" height="100" rx="30" fill="${NAVY}"/><rect x="230" y="720" width="620" height="40" fill="${NAVY}"/>
+      <text x="800" y="727" text-anchor="end" font-size="42" fill="#fff">الاتفاق</text>
+      <text x="280" y="724" font-size="22" fill="${SKY}" class="mono">PGS · AGREEMENT</text>
+      <text x="740" y="860" text-anchor="end" font-size="44" fill="${NAVY}" class="mono" style="font-weight:600!important">Scope</text>
+      <text x="740" y="990" text-anchor="end" font-size="40" fill="${NAVY}">الشروط المتفق عليها</text>
+      <text x="740" y="1120" text-anchor="end" font-size="40" fill="${NAVY}">الهدف</text>
+      ${[0,1,2].map(i=>`<rect x="300" y="${880+i*130}" width="${380*eo(seg(t,2.3+i*.15,2.8+i*.15))}" height="10" rx="5" fill="#eef2fb"/>`).join('')}
+      ${check(790,844,back(C(seg(t,2.6,2.9))))}${check(790,974,back(C(seg(t,3.0,3.3))))}${check(790,1104,back(C(seg(t,3.4,3.7))))}
+      <g transform="translate(400,1220) rotate(-10) scale(${L(1.8,1,eo(seg(t,3.7,3.95)))})" opacity="${seg(t,3.7,3.8)}">
+        <rect x="-140" y="-44" width="280" height="88" rx="14" fill="none" stroke="${BLUE}" stroke-width="6"/>
+        <text y="16" text-anchor="middle" font-size="44" fill="${BLUE}">متفق عليه</text></g>
+    </g>`;
+  }
+  // ---------- progress track toward the goal (RTL: start right, flag on the left)
+  const tk=seg(t,4.2,4.5);
+  if(tk>0){
+    const x0=930,x1=170,ty=1560;
+    let p=L(0,.78,eio(seg(t,4.4,5.4)));
+    p+=L(0,.12,seg(t,6.4,10.2));            // keeps moving while we keep working
+    p+=L(0,.10,eio(seg(t,10.6,11.4)));       // reaches the goal
+    const shake=(t>5.4&&t<5.9)?Math.sin(t*60)*4*(1-seg(t,5.4,5.9)):0;
+    const fx=L(x0,x1,p)+shake, done=p>=.999;
+    svg+=`<g opacity="${tk}">
+      <rect x="${x1}" y="${ty-14}" width="${x0-x1}" height="28" rx="14" fill="#eef2fb"/>
+      <rect x="${fx}" y="${ty-14}" width="${x0-fx}" height="28" rx="14" fill="${BLUE}" style="filter:drop-shadow(0 0 10px rgba(31,95,255,.45))"/>
+      ${t>6.4&&!done?`<rect x="${fx}" y="${ty-14}" width="${x0-fx}" height="28" rx="14" fill="url(#stripes)" opacity=".35"/>`:''}
+      <circle cx="${fx}" cy="${ty}" r="${20+(done?0:Math.sin(t*8)*3)}" fill="#fff" stroke="${BLUE}" stroke-width="6"/>
+      <text x="${x0}" y="${ty+66}" text-anchor="end" font-size="30" fill="${GDK}">البداية</text>
+      <g transform="translate(${x1},${ty}) scale(${done?1+.15*Math.sin(seg(t,11.4,11.9)*Math.PI):1})">
+        <line x1="0" y1="20" x2="0" y2="-110" stroke="${NAVY}" stroke-width="7" stroke-linecap="round"/>
+        <path d="M0 -110 Q${36} ${-100+Math.sin(t*6)*6} 70 -96 Q${40} ${-80+Math.sin(t*6+1)*6} 0 -66 Z" fill="${done?BLUE:NAVY}"/></g>
+      <text x="${x1}" y="${ty+66}" text-anchor="middle" font-size="30" fill="${done?BLUE:NAVY}">الهدف</text>
+      ${t>5.3&&t<10.6&&!done?`<line x1="${fx-34}" y1="${ty}" x2="${x1+24}" y2="${ty}" stroke="${GDK}" stroke-width="4" stroke-dasharray="4 10" opacity="${seg(t,5.3,5.6)}"/>`:''}
+    </g>`;
+    if(done)for(let k=0;k<3;k++){const q=C((t-11.4-k*.2)/1.2);if(q>0&&q<1)svg+=`<circle cx="${x1}" cy="${ty-60}" r="${40+q*160}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.5}"/>`}
+  }
+  // ---------- 2) we keep working: loop + fees struck to zero
+  if(t>5.9&&t<10.9){
+    const k=eo(seg(t,6.0,6.5)), out=eio(seg(t,10.3,10.8));
+    const cx=540,cy=880,R=150,rot=t*120;
+    svg+=`<g opacity="${k*(1-out)}" transform="translate(0,${(1-k)*60})">
+      <g transform="translate(${cx},${cy}) rotate(${rot})">
+        <path d="M${R} 0 A${R} ${R} 0 0 1 ${-R*.5} ${R*.866}" stroke="${BLUE}" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <path d="M${-R} 0 A${R} ${R} 0 0 1 ${R*.5} ${-R*.866}" stroke="${NAVY}" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <g transform="translate(${-R*.5},${R*.866}) rotate(150)"><path d="M-22 -20 L4 0 L-22 20" stroke="${BLUE}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g transform="translate(${R*.5},${-R*.866}) rotate(-30)"><path d="M-22 -20 L4 0 L-22 20" stroke="${NAVY}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      </g>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="44" fill="${NAVY}">مستمرين</text>
+      <text x="${cx}" y="${cy+46}" text-anchor="middle" font-size="22" fill="${SKY}" class="mono">WORKING ON IT</text>`;
+    // fees pill -> struck -> 0
+    const fk=back(C(seg(t,7.4,7.8))), sk=eio(seg(t,8.3,8.7)), zk=back(C(seg(t,8.8,9.2)));
+    svg+=`<g transform="translate(540,1250) scale(${fk})" opacity="${C(fk*3)}">
+        <rect x="-300" y="-56" width="600" height="112" rx="56" fill="#f4f6fa" stroke="${GRAY}" stroke-width="4"/>
+        <text x="250" y="14" text-anchor="end" font-size="36" fill="${sk>.5?GDK:NAVY}" class="mono" style="font-weight:600!important">+ Management fees</text>
+        <line x1="-270" y1="0" x2="${L(-270,270,sk)}" y2="0" stroke="${NAVY}" stroke-width="8" stroke-linecap="round" opacity="${sk>0?1:0}"/>
+      </g>
+      <g transform="translate(540,1250) scale(${zk})" opacity="${C(zk*3)}">
+        <rect x="-150" y="70" width="300" height="100" rx="50" fill="${BLUE}" style="filter:drop-shadow(0 14px 26px rgba(31,95,255,.35))"/>
+        <text x="0" y="136" text-anchor="middle" font-size="48" fill="#fff" class="mono" style="font-weight:600!important">0 ج.م</text></g>
+    </g>`;
+  }
+  // ---------- 3) result reached
+  if(t>10.9){
+    const bk=back(C(seg(t,11.4,11.9)));
+    svg+=`<g transform="translate(540,960) scale(${bk})" opacity="${C(bk*3)}">
+      <circle r="190" fill="${BLUE}" opacity=".08"/><circle r="150" fill="#fff" stroke="${BLUE}" stroke-width="6"/>
+      <circle r="105" fill="none" stroke="${BLUE}" stroke-width="10"/><circle r="60" fill="none" stroke="${BLUE}" stroke-width="10"/><circle r="20" fill="${BLUE}"/>
+      ${check(110,-110,back(C(seg(t,11.9,12.3))),46)}</g>`;
+    const tl=seg(t,12.2,12.6);
+    svg+=`<text x="540" y="${L(1250,1230,eo(tl))}" text-anchor="middle" font-size="54" fill="${NAVY}" opacity="${tl}">النتيجة المتفق عليها</text>`;
+    if(t>11.4)for(let i=0;i<26;i++){const a=i*2.3,q=seg(t,11.4,12.9),r=q*(260+(i%5)*50);
+      const x=540+Math.cos(a)*r,y=960+Math.sin(a)*r+q*q*220;
+      svg+=`<rect x="${x}" y="${y}" width="14" height="${8+(i%3)*4}" rx="3" fill="${i%3?BLUE:i%2?SKY:NAVY}" transform="rotate(${i*40+q*400} ${x} ${y})" opacity="${1-q}"/>`}
+  }
+  svg=`<defs><pattern id="stripes" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45) translate(${t*40},0)"><rect width="14" height="28" fill="#fff"/></pattern></defs>`+svg;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // OUR GUARANTEE</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:15</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
