@@ -23,11 +23,11 @@ const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
 const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff';
 const HX=540,HY=860,R=350;
 const MODS=[
+  {ar:'كول بسيطة',en:'DISCOVERY CALL',icon:'phone'},
   {ar:'تحليل السوق',en:'MARKET DATA',icon:'scan'},
-  {ar:'استهداف الدكاترة',en:'TARGETING',icon:'target'},
-  {ar:'المحتوى والحملات',en:'CAMPAIGNS',icon:'mega'},
-  {ar:'فريق المبيعات',en:'SALES TEAM',icon:'team'},
-  {ar:'متابعة الأداء',en:'ANALYTICS',icon:'chart'},
+  {ar:'استراتيجية لكل منتج',en:'STRATEGY',icon:'target'},
+  {ar:'Funnel كاملة',en:'FULL FUNNEL',icon:'funnel'},
+  {ar:'متابعة النتايج يوميًا',en:'DAILY TRACKING',icon:'chart'},
 ];
 MODS.forEach((m,i)=>{const a=(-90+i*72)*Math.PI/180;m.x=HX+R*Math.cos(a);m.y=HY+R*Math.sin(a);m.t0=1.5+i*.28});
 
@@ -40,6 +40,10 @@ function icon(kind,col,t){
     case 'mega':return `<path d="M-30 -10 L-8 -10 L24 -30 L24 30 L-8 10 L-30 10 Z" ${s}/><path d="M-20 10 L-14 30" ${s}/>`+
       [0,1].map(k=>{const p=(t*1.2+k*.5)%1;return `<path d="M${34+p*14} -14 Q${42+p*18} 0 ${34+p*14} 14" ${s} opacity="${1-p}"/>`}).join('');
     case 'team':return `<circle cx="-16" cy="-14" r="11" ${s}/><path d="M-36 26 Q-16 -2 4 26" ${s}/><circle cx="18" cy="-10" r="10" ${s}/><path d="M4 24 Q18 2 36 24" ${s}/>`;
+    case 'phone':{const r=(t*2)%1;return `<path d="M-26 -30 Q-34 -22 -30 -8 Q-20 18 6 28 Q20 34 28 24 L30 18 L14 6 L4 14 Q-12 6 -18 -10 L-10 -20 L-20 -34 Z" ${s} fill="${col}" fill-opacity=".12"/>`+
+      [0,1].map(k=>`<path d="M${12+k*10} ${-24-k*10} A${16+k*12} ${16+k*12} 0 0 1 ${30+k*12} ${-6-k*2}" ${s} opacity="${(Math.sin(t*6-k)+1)/2}"/>`).join('')}
+    case 'funnel':return `<path d="M-36 -30 L36 -30 L8 4 L8 30 L-8 22 L-8 4 Z" ${s}/>`+
+      [0,1,2].map(k=>{const p=(t*.9+k/3)%1;return `<circle cx="${L(-20+k*20,0,p)}" cy="${L(-46,26,p)}" r="5" fill="${col}" opacity="${Math.sin(p*Math.PI)}"/>`}).join('');
     case 'chart':return `<path d="M-34 28 L-34 -32 M-34 28 L36 28" ${s}/><path d="M-26 16 L-8 0 L6 8 L30 -22" ${s}/><path d="M18 -22 L30 -22 L30 -10" ${s}/>`;
   }
 }
@@ -89,7 +93,7 @@ function render(t){
       <circle r="${108+pulse*14}" fill="${BLUE}" opacity="${.10+pulse*.15}"/>
       <rect x="-82" y="-82" width="164" height="164" rx="34" fill="#fff" stroke="${pulse>.3?BLUE:NAVY}" stroke-width="4" style="filter:drop-shadow(0 12px 22px rgba(11,31,77,.18))"/>
       <g>${icon(m.icon,i%2?BLUE:NAVY,t)}</g>
-      <text y="${m.y>HY+50?136:-108}" text-anchor="middle" font-size="38" font-weight="800" fill="${NAVY}" opacity="${lab}">${m.ar}</text>
+      <text y="${m.y>HY+50?136:-108}" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="38" font-weight="800" fill="${NAVY}" opacity="${lab}">${m.ar}</text>
       <text y="${m.y>HY+50?172:-150}" text-anchor="middle" font-size="20" fill="${SKY}" style="font-family:'JetBrains Mono';letter-spacing:.15em" opacity="${lab}">${m.en}</text>
     </g>`;
   });
