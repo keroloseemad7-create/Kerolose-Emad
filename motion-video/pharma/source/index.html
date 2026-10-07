@@ -7,9 +7,10 @@
 html,body{width:1080px;height:1920px;overflow:hidden;background:var(--paper)}
 #stage{position:absolute;inset:0;overflow:hidden}
 .abs{position:absolute}
-.paper{position:absolute;inset:0;background:
-  linear-gradient(90deg,transparent 955px,var(--margin) 955px,var(--margin) 958px,transparent 958px),
-  repeating-linear-gradient(transparent 0 71px,var(--rule) 71px 73px),var(--paper)}
+.paper{position:absolute;inset:0;background-color:#ffffff;background-image:
+  linear-gradient(rgba(60,110,190,.20) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(60,110,190,.20) 1.5px,transparent 1.5px),
+  linear-gradient(rgba(60,110,190,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(60,110,190,.13) 1px,transparent 1px);
+  background-size:180px 180px,180px 180px,36px 36px,36px 36px;background-position:0 0}
 .shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(20,30,60,.10));pointer-events:none}
 .lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--dim);letter-spacing:.08em}
 .txt{font-family:Cairo,sans-serif;font-weight:800;color:var(--navy);text-align:center;direction:rtl}
