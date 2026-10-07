@@ -2,3 +2,5 @@ node_modules/
 out/*.png
 .DS_Store
 music/raw.wav
+__pycache__/
+music/raw_v2.wav

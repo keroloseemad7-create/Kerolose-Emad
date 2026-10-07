@@ -5,7 +5,9 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts Tiddy out/tiddy.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=320k",
-    "still": "remotion still src/index.ts Tiddy"
+    "still": "remotion still src/index.ts Tiddy",
+    "render:v2": "remotion render src/index.ts TiddyV2 out/tiddy_v2.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=320k",
+    "music:v2": "./music/build_v2.sh"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.533",
