@@ -46,14 +46,14 @@ function chip(x,y,k,icon,label,t){
 function block(y,k,kind,label,sub,t){
   const s=`stroke="${BLUE}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
   const ic={page:`<rect x="-40" y="-30" width="80" height="60" rx="8" ${s}/><line x1="-40" y1="-14" x2="40" y2="-14" ${s}/><rect x="-22" y="4" width="44" height="14" rx="7" fill="${BLUE}"/>`,
-    leads:`<circle cx="-16" cy="-14" r="11" ${s}/><path d="M-36 24 Q-16 -2 4 24" ${s}/><circle cx="18" cy="-10" r="10" ${s}/><path d="M4 22 Q18 2 36 22" ${s}/>`,
-    crm:`<ellipse cx="0" cy="-22" rx="34" ry="11" ${s}/><path d="M-34 -22 L-34 22 Q0 38 34 22 L34 -22" ${s}/><path d="M-34 0 Q0 16 34 0" ${s}/>`}[kind];
+    orders:`<path d="M-30 -14 L30 -14 L24 30 L-24 30 Z" ${s}/><path d="M-14 -14 Q-14 -34 0 -34 Q14 -34 14 -14" ${s}/><path d="M-10 8 L-2 16 L12 0" ${s}/>`,
+    ship:`<rect x="-38" y="-22" width="44" height="34" rx="4" ${s}/><path d="M6 -10 L24 -10 L36 4 L36 12 L6 12" ${s}/><circle cx="-22" cy="20" r="8" ${s}/><circle cx="24" cy="20" r="8" ${s}/><path d="M-58 -10 L-46 -10 M-62 2 L-46 2" ${s} opacity="${.4+.6*Math.abs(Math.sin(t*6))}"/>`}[kind];
   const drop=L(-260,0,back(C(k))), op=C(k*4);
   return `<g transform="translate(540,${y+drop})" opacity="${op}">
     <rect x="-230" y="-72" width="460" height="144" rx="30" fill="#fff" stroke="${NAVY}" stroke-width="4" style="filter:drop-shadow(0 14px 26px rgba(11,31,77,.16))"/>
     <g transform="translate(150,0)">${ic}</g>
-    <text x="70" y="4" text-anchor="end" font-size="44" fill="${NAVY}" class="mono" style="font-weight:600!important">${label}</text>
-    <text x="70" y="44" text-anchor="end" font-size="26" fill="${GDK}">${sub}</text></g>`;
+    <text x="${label.length>10?76:70}" y="4" text-anchor="end" font-size="${label.length>10?28:44}" fill="${NAVY}" class="mono" style="font-weight:600!important">${label}</text>
+    <text x="${label.length>10?76:70}" y="44" text-anchor="end" font-size="26" fill="${GDK}">${sub}</text></g>`;
 }
 // offline illustrations (gray)
 function offline(t,op,dim){
@@ -85,7 +85,7 @@ function render(t){
   let g='';
   const srcX=[310,540,770],srcY=760;
   const ck=i=>back(C(seg(t,.6+i*.18,1.1+i*.18)));
-  const blocks=[[1010,'page','Landing','صفحة هبوط'],[1250,'leads','Leads','عملاء محتملين'],[1490,'crm','CRM','متابعة وبيانات']];
+  const blocks=[[1010,'page','Landing','صفحة هبوط'],[1250,'orders','Orders','الطلبات'],[1490,'ship','Shipping company','شركة الشحن']];
   const bk=i=>seg(t,1.6+i*.45,2.2+i*.45);
   // connectors + packets
   srcX.forEach((x,i)=>{const lk=eo(seg(t,2.0+i*.1,2.4+i*.1));
