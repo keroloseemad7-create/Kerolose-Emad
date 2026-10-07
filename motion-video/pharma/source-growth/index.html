@@ -1,0 +1,123 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl}
+.w{display:inline-block}
+.iso{direction:ltr;unicode-bidi:isolate;display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=12;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255],G=[195,202,216];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+const en=(w,t,t0)=>`<span class="iso">${wd(w,t,t0,'#1f5fff')}</span>`;
+function person(x,y,s,col){return `<g transform="translate(${x},${y}) scale(${s})"><circle cy="-14" r="10" fill="${col}"/><path d="M-17 16 Q-17 -1 0 -1 Q17 -1 17 16 Z" fill="${col}"/></g>`}
+
+// panels: y top, activation time
+const P=[{y:500,t:1.6},{y:920,t:4.2},{y:1340,t:6.9}], PH=380;
+function panel(i,t,body,textHtml){
+  const p=P[i],a=t-p.t, k=eo(C(a/.5)), act=C(a/.3)*(1-C((a-2.4)/.4));
+  return {svg:`<g transform="translate(0,${(1-k)*60})" opacity="${k}">
+      <rect x="70" y="${p.y}" width="940" height="${PH}" rx="36" fill="#fff" stroke="${act>.5?BLUE:NAVY}" stroke-width="${3+act*2}" style="filter:drop-shadow(0 ${14+act*10}px ${26+act*14}px rgba(${act>.5?'31,95,255,.22':'11,31,77,.12'}))"/>
+      <text x="960" y="${p.y+60}" text-anchor="end" font-size="22" fill="${SKY}" class="mono">0${i+1}</text>
+      ${body}</g>`,
+    html:`<div class="abs ar" style="right:110px;width:420px;top:${p.y+(1-k)*60+90}px;opacity:${k};text-align:right;font-size:58px;line-height:1.3">${textHtml}</div>`};
+}
+function render(t){
+  let svg='',html='';
+  // ---------- brand header
+  const hk=seg(t,.2,.8), uk=eo(seg(t,.7,1.4));
+  html+=`<div class="abs" style="left:0;right:0;top:${L(220,190,eo(hk))}px;text-align:center;font:800 78px Cairo;color:#1f5fff;opacity:${hk};filter:blur(${(1-hk)*10}px);text-shadow:0 0 26px rgba(31,95,255,.3)">Pharma Growth System</div>
+    <div class="abs" style="left:${150+780*(1-uk)}px;top:305px;width:${780*uk}px;height:5px;border-radius:3px;background:linear-gradient(270deg,rgba(11,31,77,.15),#1f5fff);box-shadow:0 0 16px rgba(31,95,255,.5)"></div>
+    <div class="abs ar" style="left:0;right:0;top:340px;text-align:center;font-size:54px">${wd('سيستم',t,1.0)} ${wd('يقدر:',t,1.2)}</div>`;
+
+  // ---------- connectors between panels (data flows down the system)
+  [[0,1],[1,2]].forEach(([a,b],i)=>{
+    const y1=P[a].y+PH,y2=P[b].y,lk=eo(seg(t,P[b].t-.4,P[b].t));
+    svg+=`<line x1="300" y1="${y1}" x2="300" y2="${L(y1,y2,lk)}" stroke="${BLUE}" stroke-width="5" stroke-linecap="round"/>`;
+    if(t>P[b].t)for(let k=0;k<2;k++){const p=((t*1.4)+k/2)%1;svg+=`<circle cx="300" cy="${L(y1,y2,p)}" r="8" fill="${BLUE}" opacity="${Math.sin(p*Math.PI)}"/>`}
+  });
+
+  // ---------- 01: build audience (scattered people gather into a crowd)
+  if(t>P[0].t-.1){
+    const p=P[0],g=eio(seg(t,p.t+.4,p.t+1.8));let b='';
+    for(let i=0;i<24;i++){
+      const sx=110+rnd(i)*420,sy=p.y+60+rnd(i+50)*260;
+      const col=i%6,row=Math.floor(i/6), tx=170+col*62+(row%2)*20, ty=p.y+110+row*64;
+      const d=C((g-i*.012)/.7), x=L(sx,tx,eio(d)),y=L(sy,ty,eio(d))+Math.sin(t*3+i)*(1-d)*6;
+      const ap=back(C((t-p.t-i*.03)/.3));
+      b+=person(x,y,1.25*ap,mix(G,N,d));
+    }
+    // gather ring
+    if(g>.6)b+=`<ellipse cx="340" cy="${p.y+205}" rx="${210+Math.sin(t*3)*6}" ry="150" fill="none" stroke="${BLUE}" stroke-width="3" stroke-dasharray="8 10" stroke-dashoffset="${-t*40}" opacity="${seg(g,.6,1)}"/>`;
+    const r=panel(0,t,b,`${wd('يبني',t,p.t+.2)}<br>${en('Audience',t,p.t+.45)}<div class="lbl" style="direction:ltr;text-align:right;margin-top:6px;opacity:${seg(t,p.t+.7,p.t+1)}">BUILD AUDIENCE</div>`);
+    svg+=r.svg;html+=r.html;
+  }
+  // ---------- 02: generate demand (gauge rises, crowd lights up)
+  if(t>P[1].t-.1){
+    const p=P[1],dk=eio(seg(t,p.t+.5,p.t+2.2));let b='';
+    const cx=330,cy=p.y+250,R=140;
+    const arc=(a0,a1)=>{const r=Math.PI/180,x0=cx+R*Math.cos(a0*r),y0=cy+R*Math.sin(a0*r),x1=cx+R*Math.cos(a1*r),y1=cy+R*Math.sin(a1*r);return `M${x0} ${y0} A${R} ${R} 0 ${a1-a0>180?1:0} 1 ${x1} ${y1}`};
+    b+=`<path d="${arc(180,360)}" stroke="#eef2fb" stroke-width="30" fill="none" stroke-linecap="round"/>`;
+    if(dk>0.01)b+=`<path d="${arc(180,180+180*dk)}" stroke="${BLUE}" stroke-width="30" fill="none" stroke-linecap="round" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.5))"/>`;
+    const na=(180+180*dk+Math.sin(t*14)*2*dk)*Math.PI/180;
+    b+=`<line x1="${cx}" y1="${cy}" x2="${cx+(R-40)*Math.cos(na)}" y2="${cy+(R-40)*Math.sin(na)}" stroke="${NAVY}" stroke-width="8" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="16" fill="${NAVY}"/>`;
+    b+=`<text x="${cx}" y="${cy+66}" text-anchor="middle" font-size="26" fill="${dk>.9?BLUE:GDK}" class="mono">DEMAND ${dk>.9?'↑':''}</text>`;
+    // crowd row turning blue with sparks
+    for(let i=0;i<7;i++){const x=150+i*60, on=C((dk-i*.1)/.25);
+      b+=person(x,p.y+80,1.05,mix(N,B,on));
+      if(on>0&&on<1)b+=`<circle cx="${x}" cy="${p.y+50}" r="${8+on*20}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${1-on}"/>`}
+    const r=panel(1,t,b,`${wd('يولد',t,p.t+.2)}<br>${en('Demand',t,p.t+.45)}<div class="lbl" style="direction:ltr;text-align:right;margin-top:6px;opacity:${seg(t,p.t+.7,p.t+1)}">GENERATE DEMAND</div>`);
+    svg+=r.svg;html+=r.html;
+  }
+  // ---------- 03: interest -> sales (dots into funnel, coins out, bars grow)
+  if(t>P[2].t-.1){
+    const p=P[2];let b='';
+    const fx=280,fy=p.y+150;
+    b+=`<path d="M${fx-80} ${fy-60} L${fx+80} ${fy-60} L${fx+22} ${fy+30} L${fx+22} ${fy+80} L${fx-22} ${fy+100} L${fx-22} ${fy+30} Z" fill="#eef2fb" stroke="${NAVY}" stroke-width="5" stroke-linejoin="round"/>
+          <text x="${fx}" y="${fy-10}" text-anchor="middle" font-size="26" fill="${NAVY}">PGS</text>`;
+    // interest dots fall in
+    if(t>p.t+.4)for(let i=0;i<5;i++){const q=((t-p.t)*.9+i/5)%1;
+      b+=`<circle cx="${fx-60+i*30+(fx-(fx-60+i*30))*q}" cy="${L(p.y+30,fy+40,q)}" r="9" fill="${SKY}" opacity="${Math.sin(q*Math.PI)}"/>`}
+    b+=`<text x="${fx}" y="${p.y+40}" text-anchor="middle" font-size="22" fill="${SKY}" class="mono" opacity="${seg(t,p.t+.4,p.t+.7)}">INTEREST</text>`;
+    // coins out to the bars
+    const bx=[400,450,500],bars=[.35,.6,.95];
+    if(t>p.t+.8)for(let i=0;i<3;i++){const q=((t-p.t-.8)*.8+i/3)%1, tx=bx[i%3]+12;
+      const x=L(fx,tx,q),y=L(fy+100,p.y+300,q)-Math.sin(q*Math.PI)*60;
+      b+=`<g transform="translate(${x},${y})" opacity="${Math.sin(q*Math.PI)}"><circle r="15" fill="${BLUE}"/><text y="7" text-anchor="middle" font-size="18" fill="#fff">ج</text></g>`}
+    bars.forEach((h,i)=>{const k=eo(seg(t,p.t+1.0+i*.35,p.t+1.8+i*.35)),hh=h*200*k;
+      b+=`<rect x="${bx[i]}" y="${p.y+330-hh}" width="36" height="${hh}" rx="8" fill="${i==2?BLUE:SKY}" opacity="${i==2?1:.55}"/>`});
+    b+=`<text x="${468}" y="${p.y+362}" text-anchor="middle" font-size="22" fill="${BLUE}" class="mono" opacity="${seg(t,p.t+1.6,p.t+1.9)}">SALES</text>`;
+    const r=panel(2,t,b,`<span style="font-size:52px">${wd('يحوّل',t,p.t+.2)} ${wd('الـInterest',t,p.t+.45,'#7ea6ff')}<br>${wd('إلى',t,p.t+.75)} ${en('Sales',t,p.t+.95)}${wd('.',t,p.t+1.05,'#1f5fff')}</span><div class="lbl" style="direction:ltr;text-align:right;margin-top:6px;opacity:${seg(t,p.t+1.1,p.t+1.4)}">INTEREST → SALES</div>`);
+    svg+=r.svg;html+=r.html;
+  }
+  // ---------- finale: a light sweep runs down the whole system
+  const fs=seg(t,9.9,10.9);
+  if(fs>0&&fs<1)svg+=`<rect x="60" y="${L(480,1740,eio(fs))-60}" width="960" height="120" fill="url(#sweep)"/>`;
+  svg=`<defs><linearGradient id="sweep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BLUE}" stop-opacity="0"/><stop offset=".5" stop-color="${BLUE}" stop-opacity=".14"/><stop offset="1" stop-color="${BLUE}" stop-opacity="0"/></linearGradient></defs>`+svg;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:90px">PGS // GROWTH ENGINE</div>
+    <div class="lbl abs" style="right:70px;top:90px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:12</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
