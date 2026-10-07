@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--paper:#fbfbf7;--rule:rgba(60,110,190,.20);--margin:rgba(214,64,64,.38);--navy:#0b1f4d;--blue:#1f5fff;--dim:#8592a8}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--paper)}
+#stage{position:absolute;inset:0;overflow:hidden}
+.abs{position:absolute}
+.paper{position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent 955px,var(--margin) 955px,var(--margin) 958px,transparent 958px),
+  repeating-linear-gradient(transparent 0 71px,var(--rule) 71px 73px),var(--paper)}
+.shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(20,30,60,.10));pointer-events:none}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--dim);letter-spacing:.08em}
+.txt{font-family:Cairo,sans-serif;font-weight:800;color:var(--navy);text-align:center;direction:rtl}
+.w{display:inline-block}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=6;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), L=(a,b,x)=>a+(b-a)*x;
+const NAVY=[11,31,77], BLUE=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+// [word, reveal time, line, stays blue]
+const WORDS=[['خليني',.35,0],['اعرفك',.75,0],['النهارده',1.15,1],['علي',1.6,1],
+             ['Pharma',2.05,2,1],['Growth',2.4,2,1],['System',2.75,2,1]];
+function word([w,t0,,brand],t){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)), settle=C((a-.15)/.5);
+  const col=brand?mix(NAVY,BLUE,1):mix(BLUE,NAVY,settle);
+  const glow=brand?'0 0 26px rgba(31,95,255,.35)':`0 0 ${L(26,8,settle)}px rgba(31,95,255,${L(.45,.12,settle)})`;
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col};text-shadow:${glow};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*34}px)">${w}</span>`;
+}
+function render(t){
+  const lines=[[],[],[]];WORDS.forEach(w=>lines[w[2]].push(word(w,t)));
+  const lp=eo(seg(t,2.85,3.75));
+  const zoom=1+seg(t,3.2,6)*.035;
+  const uw=820,ux=(W-uw)/2,uy=1252;
+  document.getElementById('stage').innerHTML=`
+   <div class="paper"></div>
+   <div class="lbl abs" style="right:150px;top:110px">00:0${Math.floor(t)} / 00:0${DUR}</div>
+   <div class="lbl abs" style="left:70px;top:110px">PGS // 01</div>
+   <div class="abs" style="inset:0;transform:scale(${zoom});transform-origin:50% 52%">
+    <div class="abs txt" style="left:60px;right:60px;top:660px;font-size:150px;line-height:200px">${lines[0].join(' ')}<br>${lines[1].join(' ')}</div>
+    <div class="abs txt" style="left:40px;right:40px;top:1110px;font-size:84px;line-height:120px;direction:ltr;white-space:nowrap">${lines[2].join(' ')}</div>
+    <div class="abs" style="left:${ux+uw*(1-lp)}px;top:${uy}px;width:${uw*lp}px;height:5px;border-radius:3px;background:linear-gradient(270deg,rgba(11,31,77,.15),var(--blue));box-shadow:0 0 18px rgba(31,95,255,.5)"></div>
+    <div class="abs" style="left:${ux+uw*(1-lp)-70}px;top:${uy-68}px;width:140px;height:140px;background:radial-gradient(circle,rgba(70,130,255,.95),rgba(31,95,255,.35) 28%,transparent 62%);opacity:${lp>0&&lp<1?1:0}"></div>
+    <div class="lbl abs" style="right:${ux}px;top:${uy+26}px;opacity:${seg(t,3.5,3.9)}">fig. 1</div>
+   </div>
+   <div class="shade"></div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
