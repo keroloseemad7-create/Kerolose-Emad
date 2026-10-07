@@ -29,6 +29,10 @@ Everything editable is in **`src/config.json`**:
 
 Safe areas: keep text between y=192 and y=1536 (top 10% / bottom 20% are covered by social UI).
 
+## Audio
+
+Set in `config.audio`: `originalSound` (the footage's own street sound, on by default), `music` (off), `sfx` (whooshes/impacts/psst, `sfxVolume`).
+
 ## Music
 
 Drop a track at `./music.mp3` and run `npm run build`: `scripts/make_audio.py` detects its BPM and first beat,

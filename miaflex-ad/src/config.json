@@ -51,6 +51,8 @@
     "directionDeg": -35, "spreadDeg": 38, "particles": 90
   },
 
+  "audio": { "music": false, "originalSound": true, "originalStartSec": 0, "originalVolume": 1.0, "sfx": true, "sfxVolume": 0.6 },
+
   "impactBeats": [0, 1, 2, 3, 4, 5.5, 10, 15, 20, 26, 31, 35],
 
   "grade": { "contrast": 1.16, "saturate": 1.38, "brightness": 1.03, "coolTint": 0.10, "bgBlurPx": 7, "bgDarken": 0.72 },

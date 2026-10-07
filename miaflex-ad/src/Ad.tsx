@@ -76,8 +76,10 @@ export const Ad: React.FC = () => {
       <Sequence from={clipById('endcard').from}><EndCard dur={clipById('endcard').dur} /></Sequence>
       <Flashes />
       <Finish />
-      <Audio src={staticFile(music)} volume={0.62} />
-      <Audio src={staticFile('sfx.wav')} volume={0.7} />
+      {/* soundtrack switches live in config.audio */}
+      {config.audio.originalSound && <Audio src={staticFile(config.video.source)} trimBefore={Math.round(config.audio.originalStartSec * FPS)} volume={config.audio.originalVolume} />}
+      {config.audio.music && <Audio src={staticFile(music)} volume={0.62} />}
+      {config.audio.sfx && <Audio src={staticFile('sfx.wav')} volume={config.audio.sfxVolume} />}
     </AbsoluteFill>
   );
 };
