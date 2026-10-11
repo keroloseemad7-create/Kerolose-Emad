@@ -1,0 +1,101 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=9.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+const s=`stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+const IC={
+  coffee:t=>[0,1,2].map(i=>{const p=((t*.8)+i/3)%1;return `<path d="M${-12+i*12} ${-22-p*22} q5 -6 0 -12 q-5 -6 0 -12" ${s} stroke-width="4" opacity="${Math.sin(p*Math.PI)}"/>`}).join('')+`<path d="M-24 -14 L24 -14 L20 22 Q18 28 12 28 L-12 28 Q-18 28 -20 22 Z" ${s}/><path d="M24 -6 Q36 -6 34 6 Q32 16 20 15" ${s}/>`,
+  cosmetics:()=>`<rect x="-30" y="-2" width="20" height="32" rx="3" ${s}/><path d="M-28 -2 L-28 -20 L-12 -28 L-12 -2" ${s}/><rect x="2" y="4" width="32" height="26" rx="6" ${s}/><rect x="0" y="-6" width="36" height="10" rx="4" ${s}/>`,
+  pharma:()=>`<g transform="rotate(-35)"><rect x="-30" y="-13" width="60" height="26" rx="13" ${s}/><path d="M0 -13 L0 13" ${s}/></g><path d="M14 18 L26 18 M20 12 L20 24" ${s} stroke-width="4"/>`,
+  bag:()=>`<path d="M-22 -8 L22 -8 L18 28 L-18 28 Z" ${s}/><path d="M-10 -8 Q-10 -26 0 -26 Q10 -26 10 -8" ${s}/>`,
+  shirt:()=>`<path d="M-12 -26 L-26 -16 L-20 -4 L-14 -8 L-14 26 L14 26 L14 -8 L20 -4 L26 -16 L12 -26 Q0 -16 -12 -26 Z" ${s}/>`,
+  sneaker:()=>`<path d="M-28 14 L-28 0 Q-14 2 -4 -10 L8 -6 Q14 6 30 8 L30 18 L-28 18 Z" ${s}/>`,
+  watch:()=>`<circle r="16" ${s}/><path d="M0 -8 L0 0 L6 4" ${s}/><path d="M-10 -16 L-8 -28 L8 -28 L10 -16 M-10 16 L-8 28 L8 28 L10 16" ${s}/>`,
+  headphones:()=>`<path d="M-24 4 Q-24 -24 0 -24 Q24 -24 24 4" ${s}/><rect x="-28" y="2" width="12" height="22" rx="5" ${s}/><rect x="16" y="2" width="12" height="22" rx="5" ${s}/>`,
+  book:()=>`<path d="M0 -20 Q-14 -28 -28 -22 L-28 22 Q-14 16 0 24 Q14 16 28 22 L28 -22 Q14 -28 0 -20 Z M0 -20 L0 24" ${s}/>`,
+  phone:()=>`<rect x="-16" y="-28" width="32" height="56" rx="7" ${s}/><path d="M-4 20 L4 20" ${s}/>`,
+  box:()=>`<path d="M-24 -10 L0 -24 L24 -10 L24 18 L0 30 L-24 18 Z" ${s}/><path d="M-24 -10 L0 4 L24 -10 M0 4 L0 30" ${s}/>`,
+  heart:()=>`<path d="M0 24 C-30 4 -26 -22 -8 -22 C0 -22 0 -14 0 -12 C0 -14 0 -22 8 -22 C26 -22 30 4 0 24 Z" ${s}/>`,
+};
+const MAIN=[['coffee','قهوة',1.45],['cosmetics','كوزماتيكس',2.25],['pharma','فارما',3.05]];
+const MAINX=[880,540,200];                                  // RTL order: first on the right
+const MORE=['bag','shirt','sneaker','watch','headphones','book','phone','box','heart','bag','shirt','watch'];
+const BX=540;
+const BYt=t=>L(1500,1180,eio(seg(t,7.0,7.7)));                                       // browser / online store
+function render(t){
+  let g='';const BY=BYt(t), up=eio(seg(t,7.0,7.7));
+  const lift=eio(seg(t,4.2,4.9));
+  // the three named fields
+  MAIN.forEach(([ic,lab,t0],i)=>{
+    const k=back(C(seg(t,t0,t0+.45))); if(k<=0)return;
+    const fly=eio(seg(t,6.0+i*.15,6.7+i*.15));
+    const x0=MAINX[i], y0=L(980,780,lift), sc=L(1,.62,lift);
+    const x=L(x0,BX,fly), y=L(y0,BY,fly), sc2=sc*(1-fly*.75);
+    const hl=1-seg(t,t0+.6,t0+1.2);
+    g+=`<g transform="translate(${x},${y}) scale(${k*sc2})" opacity="${C(k*3)*(1-fly*.9)}">
+      <rect x="-140" y="-160" width="280" height="320" rx="40" fill="#fff" stroke="${hl>.05?BLUE:NAVY}" stroke-width="${4+hl*3}" style="filter:drop-shadow(0 16px 30px rgba(${hl>.05?'31,95,255,.28':'11,31,77,.14'}))"/>
+      <g transform="translate(0,-40) scale(1.6)"><circle r="44" fill="${BLUE}"/>${IC[ic](t)}</g>
+      <text y="105" text-anchor="middle" font-size="${lab.length>6?36:44}" fill="${NAVY}">${lab}</text></g>`;
+  });
+  // any product: lots of icons pop in, then pour into the online store
+  MORE.forEach((ic,i)=>{
+    const t0=4.6+i*.08, k=back(C(seg(t,t0,t0+.35))); if(k<=0)return;
+    const col=i%4, row=Math.floor(i/4), hx=210+col*220, hy=1000+row*120;
+    const fly=eio(seg(t,5.8+i*.06,6.5+i*.06));
+    const x=L(hx+Math.sin(t*2+i)*6,BX+(rnd(i)-.5)*120,fly), y=L(hy+Math.cos(t*2+i)*6,BY,fly);
+    g+=`<g transform="translate(${x},${y}) scale(${k*(1-fly*.7)})" opacity="${C(k*3)*(1-fly)}"><rect x="-52" y="-52" width="104" height="104" rx="26" fill="${i%2?NAVY:BLUE}"/>${IC[ic](t)}</g>`;
+  });
+  // online store window
+  const wk=back(C(seg(t,5.4,5.9))), fill=eo(seg(t,6.3,7.4)), done=t>7.4;
+  if(wk>0){
+    g+=`<g transform="translate(${BX},${BY}) scale(${wk*(1+.12*up)*(done?1+.05*Math.sin(seg(t,7.4,7.8)*Math.PI):1)})" opacity="${C(wk*3)}">
+      <rect x="-360" y="-180" width="720" height="360" rx="34" fill="#fff" stroke="${done?BLUE:NAVY}" stroke-width="${done?6:4}" style="filter:drop-shadow(0 20px 40px rgba(${done?'31,95,255,.3':'11,31,77,.16'}))"/>
+      <rect x="-360" y="-180" width="720" height="62" rx="34" fill="${NAVY}"/><rect x="-360" y="-140" width="720" height="22" fill="${NAVY}"/>
+      ${[0,1,2].map(i=>`<circle cx="${320-i*30}" cy="-149" r="9" fill="${['#ff6b6b','#ffd166','#4ade80'][i]}"/>`).join('')}
+      <rect x="-290" y="-164" width="440" height="32" rx="16" fill="#1d2f63"/><text x="-70" y="-140" text-anchor="middle" font-size="20" fill="${SKY}" class="mono">www.yourstore.com</text>
+      <g transform="translate(-250,20)"><circle r="56" fill="${BLUE}"/>
+        <circle r="28" ${s}/><path d="M-28 0 L28 0 M0 -28 Q-14 0 0 28 Q14 0 0 -28" ${s} stroke-width="4"/></g>
+      <text x="300" y="-10" text-anchor="end" font-size="44" fill="${NAVY}">متجرك أونلاين</text>
+      <rect x="-150" y="40" width="450" height="20" rx="10" fill="#eef2fb"/><rect x="${300-450*fill}" y="40" width="${450*fill}" height="20" rx="10" fill="${BLUE}"/>
+      <text x="300" y="110" text-anchor="end" font-size="28" fill="${GDK}">كل المنتجات</text>
+    </g>`;
+    if(done){const ok=back(C(seg(t,7.5,7.9)));g+=`<g transform="translate(${BX+330*(1+.12*up)},${BY-170*(1+.12*up)}) scale(${ok})"><circle r="40" fill="${BLUE}" stroke="#fff" stroke-width="5"/><path d="M-16 0 L-5 11 L17 -11" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+      for(let k=0;k<2;k++){const q=C((t-7.4-k*.2)/1.0);if(q>0&&q<1)g+=`<rect x="${BX-360-q*60}" y="${BY-180-q*60}" width="${720+q*120}" height="${360+q*120}" rx="${34+q*30}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.45}"/>`}}
+  }
+  const html=`<div class="abs ar" style="left:30px;right:30px;top:300px;font-size:68px;line-height:1.32">
+    ${wd('مهما',t,.3)} ${wd('كان',t,.48)} ${wd('مجالك،',t,.66)}<br>
+    ${wd('إذا',t,1.1)} ${wd('كان',t,1.26)} ${wd('قهوة',t,1.45,'#1f5fff')} ${wd('أو',t,2.05)} ${wd('كوزماتيكس',t,2.25,'#1f5fff')}<br>
+    ${wd('أو',t,2.85)} ${wd('فارما',t,3.05,'#1f5fff')} ${wd('أي',t,4.25)} ${wd('منتج',t,4.42,'#1f5fff')} ${wd('بيتباع',t,4.6)} ${wd('أونلاين',t,4.8,'#1f5fff')}</div>`;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // ANY PRODUCT</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:0${Math.floor(t)} / 00:09</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${g}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
