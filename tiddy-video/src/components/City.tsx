@@ -36,7 +36,9 @@ export const City: React.FC<{
   minW?: number;
   maxW?: number;
   style?: React.CSSProperties;
-}> = ({seed, offset, baseline, color, windowColor, minH, maxH, minW = 60, maxW = 180, style}) => {
+  width?: number;
+  height?: number;
+}> = ({seed, offset, baseline, color, windowColor, minH, maxH, minW = 60, maxW = 180, style, width = 1920, height = 1080}) => {
   const TILE = 2400;
   const buildings = useMemo(() => makeSkyline(seed, TILE, minH, maxH, minW, maxW), [seed, minH, maxH, minW, maxW]);
   const o = ((offset % TILE) + TILE) % TILE;
@@ -55,7 +57,7 @@ export const City: React.FC<{
     </g>
   );
   return (
-    <svg width={1920} height={1080} style={{position: 'absolute', inset: 0, ...style}}>
+    <svg width={width} height={height} style={{position: 'absolute', inset: 0, ...style}}>
       {tile(0)}
       {tile(1)}
     </svg>

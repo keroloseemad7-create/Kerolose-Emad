@@ -17,6 +17,9 @@ type Props = {
   letterSpacing?: number;
   fontFamily?: string;
   style?: React.CSSProperties;
+  /** Override the metallic fill (e.g. a red-hot gradient). */
+  gradient?: string;
+  glowColor?: string;
 };
 
 export const MetalText: React.FC<Props> = ({
@@ -29,6 +32,8 @@ export const MetalText: React.FC<Props> = ({
   letterSpacing = 0.02,
   fontFamily = ANTON,
   style,
+  gradient = METAL,
+  glowColor = '61,87,196',
 }) => {
   const base: React.CSSProperties = {
     position: 'absolute',
@@ -61,11 +66,11 @@ export const MetalText: React.FC<Props> = ({
       <div
         style={{
           ...base,
-          backgroundImage: METAL,
+          backgroundImage: gradient,
           WebkitBackgroundClip: 'text',
           backgroundClip: 'text',
           color: 'transparent',
-          filter: `drop-shadow(0 6px 0 rgba(0,0,0,0.55))${glow > 0 ? ` drop-shadow(0 0 ${30 * glow}px rgba(61,87,196,${0.9 * glow})) drop-shadow(0 0 ${8 * glow}px rgba(255,255,255,${0.5 * glow}))` : ''}`,
+          filter: `drop-shadow(0 6px 0 rgba(0,0,0,0.55))${glow > 0 ? ` drop-shadow(0 0 ${30 * glow}px rgba(${glowColor},${0.9 * glow})) drop-shadow(0 0 ${8 * glow}px rgba(255,255,255,${0.5 * glow}))` : ''}`,
           clipPath: slices ? 'inset(0 0 100% 0)' : undefined,
         }}
       >
@@ -80,7 +85,7 @@ export const MetalText: React.FC<Props> = ({
             key={i}
             style={{
               ...base,
-              backgroundImage: METAL,
+              backgroundImage: gradient,
               WebkitBackgroundClip: 'text',
               backgroundClip: 'text',
               color: 'transparent',

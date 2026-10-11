@@ -1,0 +1,44 @@
+{
+  "_doc": "Single source of truth for Tiddy v2: every timing (seconds) and every on-screen string. Times are snapped to the beat grid (music.bpm / music.offsetSec) at runtime; tools/detect_beats.py rewrites the grid from ./music.mp3 if you add one. music/make_music_v2.py reads this same file.",
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "durationSec": 40,
+  "music": {
+    "external": "music.mp3",
+    "generated": "music_v2.wav",
+    "bpm": 120,
+    "offsetSec": 0
+  },
+  "scenes": {
+    "coldOpen": [0, 4],
+    "turnaround": [4, 9],
+    "ride": [9, 15],
+    "trigger": [15, 17],
+    "monster": [17, 25],
+    "shrink": [25, 31],
+    "backOnBike": [31, 36],
+    "endCard": [36, 40]
+  },
+  "events": {
+    "coldOpen": {"shots": [0, 1, 2, 3], "hits": [1, 2, 3]},
+    "turnaround": {"land": 4.0, "swaps": [5.0, 5.5, 6.0, 6.5], "title": 7.0},
+    "ride": {"brake": 14.0, "stop": 15.0},
+    "trigger": {"freeze": 15.0, "face": 15.5, "heartbeats": [16.0, 16.5]},
+    "monster": {"ignite": 17.0, "wide": 18.0, "stages": [19.0, 20.5, 22.0], "ruler": 18.5, "rulerSnap": 22.5, "roar": 23.0, "titleWords": [23.0, 23.5]},
+    "shrink": {"smokeClear": 25.0, "pop": 25.5, "sit": 26.0, "oops": 27.0},
+    "backOnBike": {"hop": 31.0, "land": 32.0, "jump": 33.5, "jumpLand": 35.5},
+    "endCard": {"logo": 36.0, "tagline": 37.0, "redEye": [39.0, 39.4]}
+  },
+  "text": {
+    "coldOpenWords": ["24", "98'", "CHAMP"],
+    "title": "TIDDY",
+    "turntableLabel": "SUBJECT: TIDDY // HEIGHT ~20 CM",
+    "rideHud": "FULL SCRAP",
+    "monsterWords": ["MONSTER", "TIDDY"],
+    "rulerValues": ["20 cm", "2 m", "20 m", "200 m"],
+    "rulerCaption": "SIZE REFERENCE",
+    "oops": "...oops",
+    "tagline": "Small bear. Big legend."
+  }
+}
