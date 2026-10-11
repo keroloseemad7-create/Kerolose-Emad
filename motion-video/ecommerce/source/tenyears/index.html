@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=10.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+const s=`stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+const ICONS=[
+  `<path d="M-22 -10 L22 -10 L18 22 Q16 28 10 28 L-10 28 Q-16 28 -18 22 Z" ${s}/><path d="M22 -2 Q34 -2 32 8 Q30 18 18 16" ${s}/>`,
+  `<path d="M-22 -8 L22 -8 L18 28 L-18 28 Z" ${s}/><path d="M-10 -8 Q-10 -26 0 -26 Q10 -26 10 -8" ${s}/>`,
+  `<rect x="-30" y="-2" width="20" height="32" rx="3" ${s}/><path d="M-28 -2 L-28 -20 L-12 -28 L-12 -2" ${s}/><rect x="2" y="4" width="32" height="26" rx="6" ${s}/>`,
+  `<g transform="rotate(-35)"><rect x="-30" y="-13" width="60" height="26" rx="13" ${s}/><path d="M0 -13 L0 13" ${s}/></g>`,
+  `<path d="M-12 -26 L-26 -16 L-20 -4 L-14 -8 L-14 26 L14 26 L14 -8 L20 -4 L26 -16 L12 -26 Q0 -16 -12 -26 Z" ${s}/>`,
+  `<path d="M-28 14 L-28 0 Q-14 2 -4 -10 L8 -6 Q14 6 30 8 L30 18 L-28 18 Z" ${s}/>`,
+];
+function coin(x,y,top){return `<ellipse cx="${x}" cy="${y+8}" rx="44" ry="15" fill="${NAVY}"/><ellipse cx="${x}" cy="${y}" rx="44" ry="15" fill="${top?BLUE:'#2a4fc0'}" stroke="#fff" stroke-width="2"/>${top?`<text x="${x}" y="${y+8}" text-anchor="middle" font-size="22" fill="#fff">ج</text>`:''}`}
+function render(t){
+  let g='';
+  const out=eio(seg(t,4.4,5.0));
+  // ---- agency badge
+  const bk=back(C(seg(t,.5,1.0)));
+  g+=`<g transform="translate(540,${L(760,690,out)}) scale(${bk*L(1,.8,out)})" opacity="${C(bk*3)}">
+    <rect x="-230" y="-56" width="460" height="112" rx="56" fill="${NAVY}" style="filter:drop-shadow(0 16px 32px rgba(31,95,255,.3))"/>
+    <circle cx="-170" r="30" fill="${BLUE}"/><path d="M-182 8 L-170 -12 L-158 8" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="30" y="16" text-anchor="middle" font-size="46" fill="#fff" class="mono" style="font-weight:600!important;letter-spacing:.12em">STRATEGY</text></g>`;
+  // ---- 10-year ruler (RTL: year 1 on the right)
+  if(out<1){
+    const fill=eio(seg(t,1.6,3.6)), years=Math.max(1,Math.min(10,Math.ceil(fill*10-0.001)));
+    g+=`<g opacity="${1-out}" transform="translate(0,${-out*80})">
+      <line x1="140" y1="1060" x2="940" y2="1060" stroke="#e5ebf6" stroke-width="14" stroke-linecap="round"/>
+      <line x1="${940-800*fill}" y1="1060" x2="940" y2="1060" stroke="${BLUE}" stroke-width="14" stroke-linecap="round" opacity="${fill>0?1:0}" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.45))"/>`;
+    for(let i=0;i<10;i++){const x=940-i*800/9, on=fill*9>=i-.01&&fill>0;
+      g+=`<circle cx="${x}" cy="1060" r="${on?16:11}" fill="${on?BLUE:'#fff'}" stroke="${on?'#fff':GRAY}" stroke-width="4"/>
+        <text x="${x}" y="1120" text-anchor="middle" font-size="26" fill="${on?NAVY:GRAY}" class="mono">${i+1}</text>`}
+    g+=`<g transform="translate(540,1330) scale(${back(C(seg(t,1.6,2.0)))})" opacity="${seg(t,1.6,1.8)}">
+      <text x="60" y="40" text-anchor="middle" font-size="220" fill="${years===10?BLUE:NAVY}" class="mono" style="font-weight:600!important">${years}</text>
+      <text x="-170" y="10" text-anchor="middle" font-size="58" fill="${NAVY}">سنين</text></g>
+      <g transform="translate(540,1520)" opacity="${seg(t,2.4,2.8)}"><rect x="-190" y="-38" width="380" height="76" rx="38" fill="#eef2fb"/>
+        <g transform="translate(130,0) scale(.8)"><path d="M-26 -18 L-18 -18 L-12 12 L18 12 L24 -8 L-15 -8" stroke="${BLUE}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-8" cy="22" r="4" fill="${BLUE}"/><circle cx="14" cy="22" r="4" fill="${BLUE}"/></g>
+        <text x="-30" y="12" text-anchor="middle" font-size="32" fill="${NAVY}" class="mono" style="font-weight:600!important">E-COMMERCE</text></g>
+    </g>`;
+  }
+  // ---- brands + coin stacks = millions
+  if(t>4.6){
+    const X=[860,708,556,404,252,100].map(x=>x+80);
+    X.forEach((x,i)=>{
+      const k=back(C(seg(t,4.9+i*.1,5.3+i*.1)));
+      g+=`<g transform="translate(${x},940) scale(${k})" opacity="${C(k*3)}"><rect x="-56" y="-56" width="112" height="112" rx="28" fill="${i%2?NAVY:BLUE}" style="filter:drop-shadow(0 10px 20px rgba(11,31,77,.2))"/><g transform="scale(.85)">${ICONS[i]}</g></g>`;
+      const n=Math.round([7,10,8,12,9,11][i]*eo(seg(t,5.6+i*.08,7.6+i*.08)));
+      for(let c=0;c<n;c++)g+=coin(x,1700-c*24,c===n-1);
+      if(n>0)g+=`<line x1="${x}" y1="1000" x2="${x}" y2="${1700-n*24-20}" stroke="${SKY}" stroke-width="3" stroke-dasharray="5 8" opacity=".6"/>`;
+    });
+    g+=`<line x1="90" y1="1730" x2="990" y2="1730" stroke="${NAVY}" stroke-width="4" opacity="${seg(t,5.5,5.8)}"/>`;
+    // "millions" + "literally" stamp
+    const mk=back(C(seg(t,6.0,6.45))), lk=seg(t,6.45,6.6), lb=back(C(lk));
+    g+=`<g transform="translate(540,1170) scale(${mk})" opacity="${C(mk*3)}"><text y="40" text-anchor="middle" font-size="150" fill="${BLUE}" style="filter:drop-shadow(0 0 24px rgba(31,95,255,.35))">ملايين</text></g>`;
+    if(lk>0)g+=`<g transform="translate(830,1060) rotate(-12) scale(${L(1.8,1,lb)})" opacity="${C(lk*4)}"><rect x="-120" y="-46" width="240" height="92" rx="16" fill="none" stroke="${NAVY}" stroke-width="6"/>
+      <text y="16" text-anchor="middle" font-size="48" fill="${NAVY}">حرفيًا</text></g>`;
+    if(t>6.45)for(let k=0;k<2;k++){const q=C((t-6.45-k*.2)/1.0);if(q>0&&q<1)g+=`<ellipse cx="540" cy="1150" rx="${300+q*240}" ry="${110+q*90}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.4}"/>`}
+  }
+  let html='';
+  const o1=seg(t,4.3,4.6);
+  if(t<4.65)html+=`<div class="abs ar" style="left:30px;right:30px;top:300px;font-size:70px;line-height:1.32;opacity:${1-o1};filter:blur(${o1*10}px);transform:translateY(${-o1*40}px)">
+    ${wd('احنا',t,.3)} ${wd('في',t,.45)} ${wd('استراتيجي',t,.6,'#1f5fff')}<br>${wd('شغالين',t,1.3)} ${wd('من',t,1.5)} ${wd('10',t,1.7,'#1f5fff')} ${wd('سنين',t,1.9,'#1f5fff')}<br>${wd('في',t,2.2)} ${wd('الإيكوميرس',t,2.4,'#1f5fff')}</div>`;
+  if(t>=4.5)html+=`<div class="abs ar" style="left:30px;right:30px;top:320px;font-size:76px;line-height:1.32">
+    ${wd('وحققنا',t,4.7)} ${wd('مبيعات',t,4.9)}<br>${wd('مع',t,5.1)} ${wd('براندات',t,5.3)} ${wd('بملايين',t,6.0,'#1f5fff')} ${wd('حرفيًا',t,6.4,'#1f5fff')}</div>`;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">STRATEGY // 10 YEARS</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:10</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${g}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
