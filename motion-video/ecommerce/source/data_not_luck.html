@@ -1,0 +1,113 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=11.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#c3cad8',GDK='#8b95a8',RED='#E5484D';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+const s=`stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+// stages (RTL flow: starts top-right)
+const ST=[
+  {x:830,y:760, lab:'يشوفك', t:.95, ic:`<path d="M-28 0 Q0 -24 28 0 Q0 24 -28 0 Z" ${s}/><circle r="9" fill="#fff"/>`},
+  {x:270,y:960, lab:'يثق', t:2.25, ic:`<path d="M0 -26 L22 -16 L22 2 Q22 18 0 28 Q-22 18 -22 2 L-22 -16 Z" ${s}/><path d="M-9 0 L-2 7 L11 -7" ${s}/>`},
+  {x:810,y:1170,lab:'يشتري', t:3.2, ic:`<path d="M-26 -18 L-18 -18 L-12 12 L18 12 L24 -8 L-15 -8" ${s}/><circle cx="-8" cy="22" r="4" fill="#fff"/><circle cx="14" cy="22" r="4" fill="#fff"/>`},
+  {x:290,y:1380,lab:'يرجع يشتري تاني', t:4.45, ic:`<path d="M18 -14 A22 22 0 1 0 22 8" ${s}/><path d="M10 -22 L20 -14 L10 -6" ${s}/>`},
+];
+const PATH=`M${ST[0].x} ${ST[0].y} C 640 760, 460 960, ${ST[1].x} ${ST[1].y} C 520 960, 600 1170, ${ST[2].x} ${ST[2].y} C 620 1170, 480 1380, ${ST[3].x} ${ST[3].y}`;
+const LOOP=`M${ST[3].x} ${ST[3].y} C 520 1500, 930 1400, ${ST[2].x+10} ${ST[2].y+70}`;
+// progress along the main path reaching each stage on its word
+const KEYS=[[.95,0],[2.25,1/3],[3.2,2/3],[4.45,1]];
+function pathProg(t){if(t<=KEYS[0][0])return 0;for(let i=0;i<KEYS.length-1;i++){const[a,pa]=KEYS[i],[b,pb]=KEYS[i+1];if(t<=b)return L(pa,pb,eio((t-a)/(b-a)))}return 1}
+function render(t){
+  let g='';
+  const out=eio(seg(t,6.6,7.3)), lift=L(0,-120,out), sc=L(1,.86,out);
+  const pp=pathProg(t), lp=eio(seg(t,5.0,5.8));
+  let J=`<path d="${PATH}" fill="none" stroke="#e5ebf6" stroke-width="16" stroke-linecap="round" opacity="${seg(t,.5,.9)}"/>
+    <path id="mp" d="${PATH}" fill="none" stroke="${BLUE}" stroke-width="16" stroke-linecap="round" pathLength="1" stroke-dasharray="${pp} 1" opacity="${pp>0?1:0}"/>
+    <path id="lp" d="${LOOP}" fill="none" stroke="${SKY}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${lp} 1" pathLength="1" opacity="${lp>0?1:0}"/>`;
+  if(lp>.95)J+=`<g transform="translate(${ST[2].x+10},${ST[2].y+70}) rotate(-110)"><path d="M-14 -12 L4 0 L-14 12" stroke="${SKY}" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  ST.forEach((st,i)=>{
+    const k=back(C(seg(t,st.t-.25,st.t+.2))), on=t>=st.t;
+    const pulse=on?Math.max(0,1-(t-st.t)/.8):0, again=i===2?Math.max(0,1-Math.abs(t-5.85)/.5):0;
+    J+=`<g transform="translate(${st.x},${st.y}) scale(${k*(1+.1*Math.max(pulse,again))})" opacity="${C(k*3)}">
+      <circle r="${70+30*Math.max(pulse,again)}" fill="${BLUE}" opacity="${.12*Math.max(pulse,again)}"/>
+      <circle r="62" fill="${on?BLUE:'#fff'}" stroke="${on?BLUE:GRAY}" stroke-width="5" style="filter:drop-shadow(0 12px 22px rgba(31,95,255,${on?.3:.08}))"/>
+      ${on?st.ic:''}
+      <text y="${i%2?110:-86}" text-anchor="middle" font-size="40" fill="${NAVY}">${st.lab}</text></g>`;
+  });
+  // repeat badge
+  const rk=back(C(seg(t,5.8,6.2)));
+  J+=`<g transform="translate(${ST[2].x+95},${ST[2].y-60}) scale(${rk})" opacity="${C(rk*3)}"><circle r="34" fill="${NAVY}"/><text y="12" text-anchor="middle" font-size="32" fill="#fff" class="mono" style="font-weight:600!important">×2</text></g>`;
+  J+=`<g id="dot"></g>`;
+  g+=`<g transform="translate(540,${1070+lift}) scale(${sc}) translate(-540,-1070)">${J}</g>`;
+  // data foundation feeding every stage
+  const dk=eo(seg(t,7.0,7.6));
+  if(dk>0){
+    const by=1620;
+    ST.forEach((st,i)=>{const sx=540+(st.x-540)*sc, sy=1070+lift+(st.y-1070)*sc, lk=eo(seg(t,7.3+i*.12,7.8+i*.12));
+      g+=`<line x1="${L(200,700,i/3)}" y1="${by-70}" x2="${L(L(200,700,i/3),sx,lk)}" y2="${L(by-70,sy+60,lk)}" stroke="${NAVY}" stroke-width="3" stroke-dasharray="6 9" opacity=".35"/>`;
+      if(t>7.8)for(let k=0;k<2;k++){const q=((t-7.8)*1.1+k/2+i*.2)%1;g+=`<rect x="${L(L(200,700,i/3),sx,q)-7}" y="${L(by-70,sy+60,q)-7}" width="14" height="14" rx="3" fill="${BLUE}" opacity="${Math.sin(q*Math.PI)}"/>`}});
+    const bars=[.4,.65,.5,.85,.7,1];
+    g+=`<g transform="translate(450,${by}) scale(${dk})" opacity="${C(dk*3)}">
+      <rect x="-330" y="-70" width="660" height="140" rx="34" fill="${NAVY}" style="filter:drop-shadow(0 16px 30px rgba(31,95,255,.35))"/>
+      <text x="290" y="16" text-anchor="end" font-size="56" fill="#fff" class="mono" style="font-weight:600!important">DATA</text>
+      ${bars.map((b,i)=>{const h=70*b*(.75+.25*Math.sin(t*3+i));return `<rect x="${-290+i*40}" y="${30-h}" width="26" height="${h}" rx="6" fill="${i==5?BLUE:SKY}"/>`}).join('')}
+      ${t>9.3?`<g transform="translate(330,-70) scale(${back(C(seg(t,9.3,9.7)))})"><circle r="34" fill="${BLUE}" stroke="#fff" stroke-width="5"/><path d="M-14 0 L-4 10 L15 -10" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`:''}</g>`;
+  }
+  // luck: a rolling die that gets crossed out
+  const ck=back(C(seg(t,8.0,8.4)));
+  if(ck>0){
+    const roll=t<9.0?t*9:9*9, face=1+Math.floor((t<9.0?t*12:107)%6), bx=seg(t,9.0,9.3);
+    const pips={1:[[0,0]],2:[[-14,-14],[14,14]],3:[[-14,-14],[0,0],[14,14]],4:[[-14,-14],[14,-14],[-14,14],[14,14]],5:[[-14,-14],[14,-14],[0,0],[-14,14],[14,14]],6:[[-14,-14],[14,-14],[-14,0],[14,0],[-14,14],[14,14]]}[face];
+    g+=`<g transform="translate(920,1620) scale(${ck})" opacity="${C(ck*3)*(1-seg(t,10.2,10.8)*.5)}"><g transform="rotate(${roll*(1-bx)})">
+      <rect x="-48" y="-48" width="96" height="96" rx="18" fill="#fff" stroke="${bx>0?RED:NAVY}" stroke-width="5"/>
+      ${pips.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="7" fill="${bx>0?RED:NAVY}"/>`).join('')}</g>
+      <text y="96" text-anchor="middle" font-size="34" fill="${bx>0?RED:GDK}">حظ</text>
+      ${bx>0?`<g transform="scale(${back(bx)})"><line x1="-64" y1="-64" x2="64" y2="64" stroke="${RED}" stroke-width="10" stroke-linecap="round"/><line x1="64" y1="-64" x2="-64" y2="64" stroke="${RED}" stroke-width="10" stroke-linecap="round"/></g>`:''}</g>`;
+  }
+  // headlines
+  let html='';
+  const o1=seg(t,6.4,6.8);
+  if(t<6.9)html+=`<div class="abs ar" style="left:30px;right:30px;top:290px;font-size:64px;line-height:1.32;opacity:${1-o1};filter:blur(${o1*10}px);transform:translateY(${-o1*40}px)">
+    ${wd('من',t,.3)} ${wd('أول',t,.45)} ${wd('ما',t,.6)} ${wd('العميل',t,.75)} ${wd('يشوفك',t,.95,'#1f5fff')}<br>
+    ${wd('لحد',t,1.9)} ${wd('ما',t,2.05)} ${wd('يثق،',t,2.25,'#1f5fff')} ${wd('يشتري،',t,3.2,'#1f5fff')}<br>
+    ${wd('ويرجع',t,4.3,'#1f5fff')} ${wd('يشتري',t,4.48,'#1f5fff')} ${wd('تاني...',t,4.66,'#1f5fff')}</div>`;
+  if(t>=6.7)html+=`<div class="abs ar" style="left:30px;right:30px;top:300px;font-size:76px;line-height:1.32">
+    ${wd('كل',t,6.9)} ${wd('ده',t,7.05)} ${wd('مبني',t,7.2)} ${wd('على',t,7.38)} ${wd('Data',t,7.56,'#1f5fff')}<br>
+    ${wd('مش',t,8.05,'#E5484D')} ${wd('على',t,8.22,'#E5484D')} ${wd('حظ',t,8.4,'#E5484D')}</div>`;
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // DATA, NOT LUCK</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:11</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${g}</svg>${html}</div>`;
+  // customer dot travelling along the journey, then the loop
+  const dot=document.getElementById('dot'), mp=document.getElementById('mp'), lpE=document.getElementById('lp');
+  if(dot&&t>.5&&t<7.2){
+    let pt;
+    if(t<5.0){pt=mp.getPointAtLength(pp*mp.getTotalLength())}else{pt=lpE.getPointAtLength(lp*lpE.getTotalLength())}
+    dot.innerHTML=`<circle cx="${pt.x}" cy="${pt.y}" r="22" fill="#fff" stroke="${NAVY}" stroke-width="7"/><circle cx="${pt.x}" cy="${pt.y}" r="8" fill="${NAVY}"/>`;
+  }
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
