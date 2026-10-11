@@ -1,0 +1,138 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:#fff}
+.abs{position:absolute}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:24px;color:#8592a8;letter-spacing:.08em}
+.ar{font-family:Cairo,sans-serif;font-weight:800;color:#0b1f4d;direction:rtl;text-align:center}
+.w{display:inline-block}
+.iso{direction:ltr;unicode-bidi:isolate;display:inline-block}
+svg text{font-family:Cairo,sans-serif;font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace!important;font-weight:400!important}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=10.5;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const NAVY='#0b1f4d',BLUE='#1f5fff',SKY='#7ea6ff',GRAY='#b3bbcb',GDK='#8b95a8';
+const N=[11,31,77],B=[31,95,255];
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(L(v,b[i],k))).join(',')})`;
+const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function wd(w,t,t0,col){
+  const a=t-t0;if(a<0)return `<span class="w" style="opacity:0">${w}</span>`;
+  const k=eo(C(a/.35)),s=C((a-.15)/.5);
+  return `<span class="w" style="opacity:${C(a/.12)};color:${col||mix(B,N,s)};filter:blur(${(1-k)*10}px);transform:translateY(${(1-k)*26}px)">${w}</span>`;
+}
+</script>
+<script src="prod.js"></script>
+<script>
+const PX=540,PY=1160,PW=420,PH=800;                   // phone (centre, size)
+const CARDS=[[-98,-80,'box'],[98,-80,'bottle'],[-98,170,'tube'],[98,170,'box']];
+const TAPS=[2.35,2.8,3.25];                            // cursor taps "+" on cards 0,1,3
+const TAPCARD=[0,1,3];
+const fmt=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
+
+function phone(t){
+  const k=back(C(seg(t,.5,1.1)));
+  let g=`<rect x="${PX-PW/2}" y="${PY-PH/2}" width="${PW}" height="${PH}" rx="62" fill="${NAVY}" style="filter:drop-shadow(0 30px 50px rgba(11,31,77,.28))"/>
+    <rect x="${PX-PW/2+16}" y="${PY-PH/2+16}" width="${PW-32}" height="${PH-32}" rx="48" fill="#f6f8fd"/>
+    <rect x="${PX-50}" y="${PY-PH/2+26}" width="100" height="22" rx="11" fill="${NAVY}"/>`;
+  // store header
+  const hk=seg(t,1.1,1.4);
+  const cart=TAPS.filter(x=>t>=x+.25).length;
+  g+=`<g opacity="${hk}"><text x="${PX+150}" y="${PY-300}" text-anchor="end" font-size="34" fill="${NAVY}">متجرك</text>
+     <rect x="${PX-170}" y="${PY-270}" width="340" height="46" rx="23" fill="#fff" stroke="#e1e7f3" stroke-width="3"/>
+     <circle cx="${PX+140}" cy="${PY-247}" r="9" fill="none" stroke="${GDK}" stroke-width="3"/>
+     <g transform="translate(${PX-150},${PY-312})"><path d="M-20 -14 L-12 -14 L-6 10 L18 10 L22 -6 L-9 -6" fill="none" stroke="${NAVY}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-3" cy="17" r="4" fill="${NAVY}"/><circle cx="15" cy="17" r="4" fill="${NAVY}"/>
+       ${cart?`<g transform="translate(20,-18) scale(${1+.35*Math.max(0,1-(t-(TAPS[cart-1]+.25))/.25)})"><circle r="14" fill="${BLUE}"/><text y="6" text-anchor="middle" font-size="18" fill="#fff" class="mono">${cart}</text></g>`:''}</g></g>`;
+  // product cards
+  CARDS.forEach(([dx,dy,kind],i)=>{
+    const ck=back(C(seg(t,1.35+i*.18,1.75+i*.18)));if(ck<=0)return;
+    const tapped=TAPCARD.indexOf(i), tk=tapped>=0?seg(t,TAPS[tapped],TAPS[tapped]+.25):0;
+    const x=PX+dx,y=PY+dy;
+    g+=`<g transform="translate(${x},${y}) scale(${ck*(1-.04*Math.sin(tk*Math.PI))})" opacity="${C(ck*3)}">
+      <rect x="-86" y="-110" width="172" height="225" rx="22" fill="#fff" stroke="${tk>0?BLUE:'#e1e7f3'}" stroke-width="3" style="filter:drop-shadow(0 8px 14px rgba(11,31,77,.08))"/>
+      ${prod(kind,0,-40,.42,false,1,0)}
+      <rect x="-66" y="44" width="90" height="12" rx="6" fill="#dfe6f4"/><rect x="-66" y="66" width="56" height="12" rx="6" fill="${SKY}"/>
+      <g transform="translate(52,78)"><circle r="${20+6*Math.sin(tk*Math.PI)}" fill="${tk>=1?BLUE:NAVY}"/>${tk>=1?`<path d="M-8 0 L-2 6 L9 -6" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:`<path d="M-8 0 L8 0 M0 -8 L0 8" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`}</g>
+    </g>`;
+  });
+  // checkout button
+  const bk=seg(t,1.9,2.2);
+  g+=`<g opacity="${bk}"><rect x="${PX-170}" y="${PY+305}" width="340" height="62" rx="31" fill="${BLUE}"/><text x="${PX}" y="${PY+346}" text-anchor="middle" font-size="30" fill="#fff">اطلب دلوقتي</text></g>`;
+  // tapping hand cursor
+  if(t>2.0&&t<3.7){
+    const pos=(i)=>{const [dx,dy]=CARDS[TAPCARD[i]];return [PX+dx+52,PY+dy+78]};
+    let cx,cy,press=0;
+    const i=Math.min(2,Math.max(0,TAPS.findIndex(x=>t<x+.3)<0?2:TAPS.findIndex(x=>t<x+.3)));
+    const prev=i>0?pos(i-1):[PX+260,PY+420], cur=pos(i), m=eio(seg(t,(i?TAPS[i-1]+.15:2.0),TAPS[i]));
+    cx=L(prev[0],cur[0],m);cy=L(prev[1],cur[1],m);press=Math.sin(seg(t,TAPS[i],TAPS[i]+.2)*Math.PI);
+    const out=seg(t,3.45,3.7);
+    g+=`<g transform="translate(${cx+8},${cy+10}) scale(${1-.15*press})" opacity="${seg(t,2.0,2.15)*(1-out)}">
+      <path d="M0 0 L0 46 L12 35 L21 56 L30 52 L21 32 L38 32 Z" fill="#fff" stroke="${NAVY}" stroke-width="4" stroke-linejoin="round"/></g>`;
+    if(press>0)g+=`<circle cx="${cx}" cy="${cy}" r="${20+40*seg(t,TAPS[i],TAPS[i]+.3)}" fill="none" stroke="${BLUE}" stroke-width="4" opacity="${1-seg(t,TAPS[i],TAPS[i]+.3)}"/>`;
+  }
+  return {g,k};
+}
+function render(t){
+  let svg='',html='';
+  // headlines
+  const out1=seg(t,3.35,3.65);
+  if(t<3.7)html+=`<div class="abs ar" style="left:30px;right:30px;top:330px;font-size:84px;line-height:1.3;opacity:${1-out1};filter:blur(${out1*10}px);transform:translateY(${-out1*40}px)">
+     ${wd('لو',t,.3)} ${wd('إنت',t,.48)} ${wd('صاحب',t,.66)}<br><span class="iso">${wd('brand',t,.95,'#1f5fff')} ${wd('e-commerce',t,1.15,'#1f5fff')}</span></div>`;
+  if(t>=3.6)html+=`<div class="abs ar" style="left:30px;right:30px;top:330px;font-size:84px;line-height:1.3">
+     ${wd('إزاي',t,3.65)} ${wd('تقدر',t,3.85)} ${wd('تحقق',t,4.05)}<br>${wd('مليون',t,4.35,'#1f5fff')} ${wd('جنيه',t,4.55)} ${wd('مبيعات.',t,4.75)}</div>`;
+
+  // phone (shrinks down to make room for the sales counter)
+  const sh=eio(seg(t,3.6,4.3)), s=L(1,.66,sh), py=L(PY,1330,sh);
+  const ph=phone(t);
+  svg+=`<g transform="translate(540,${py}) scale(${s*ph.k}) translate(-540,${-PY})" opacity="${C(ph.k*3)}">${ph.g}</g>`;
+  const phoneTop=py-PH/2*s;
+
+  // sales counter
+  const ck=back(C(seg(t,4.2,4.7))), v=1e6*eio(seg(t,4.75,8.7)), hit=t>=8.7, hk=seg(t,8.7,9.1);
+  const punch=hit?1+.08*Math.sin(hk*Math.PI):1;
+  svg+=`<g transform="translate(540,790) scale(${ck*punch})" opacity="${C(ck*3)}">
+     <rect x="-430" y="-150" width="860" height="300" rx="40" fill="#fff" stroke="${hit?BLUE:NAVY}" stroke-width="${hit?6:4}" style="filter:drop-shadow(0 18px 36px rgba(${hit?'31,95,255,.30':'11,31,77,.14'}))"/>
+     <text x="380" y="-88" text-anchor="end" font-size="36" fill="${GDK}">المبيعات</text>
+     <text x="-380" y="-90" font-size="24" fill="${SKY}" class="mono">LIVE ●</text>
+     <text x="-30" y="40" text-anchor="middle" font-size="112" fill="${hit?BLUE:NAVY}" style="direction:ltr">${fmt(Math.round(v/1000)*1000)}</text>
+     <text x="345" y="38" text-anchor="middle" font-size="40" fill="${GDK}">ج.م</text>
+     <rect x="-380" y="86" width="760" height="20" rx="10" fill="#eef2fb"/>
+     <rect x="${380-760*v/1e6}" y="86" width="${760*v/1e6}" height="20" rx="10" fill="${BLUE}" style="filter:drop-shadow(0 0 8px rgba(31,95,255,.5))"/>
+     <g transform="translate(-392,96)"><line x1="0" y1="10" x2="0" y2="-46" stroke="${NAVY}" stroke-width="5" stroke-linecap="round"/><path d="M0 -46 L-34 -36 L0 -24 Z" fill="${hit?BLUE:NAVY}"/></g>
+  </g>`;
+  // orders flying from the phone into the counter
+  for(let i=0;i<26;i++){
+    const st=4.75+i*.15, q=seg(t,st,st+.7);
+    if(q<=0||q>=1)continue;
+    const sx=540+(rnd(i)-.5)*220, x=L(sx,540+(rnd(i+9)-.5)*300,eio(q)), y=L(phoneTop+20,900,eio(q))-Math.sin(q*Math.PI)*60;
+    svg+=`<g transform="translate(${x},${y}) scale(${back(C(q*4))*(1-.3*q)})" opacity="${Math.min(1,(1-q)*4)}">
+      <rect x="-100" y="-26" width="196" height="52" rx="26" fill="${BLUE}" style="filter:drop-shadow(0 8px 14px rgba(31,95,255,.3))"/>
+      <circle cx="66" r="15" fill="#fff"/><path d="M59 0 L64 5 L74 -5" stroke="${BLUE}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-20" y="9" text-anchor="middle" font-size="24" fill="#fff">طلب جديد</text></g>`;
+  }
+  // goal reached
+  if(hit){
+    for(let k=0;k<3;k++){const q=C((t-8.7-k*.18)/1.1);if(q>0&&q<1)svg+=`<rect x="${540-430-q*80}" y="${790-150-q*80}" width="${860+q*160}" height="${300+q*160}" rx="${40+q*40}" fill="none" stroke="${BLUE}" stroke-width="3" opacity="${(1-q)*.5}"/>`}
+    const bk=back(C(seg(t,8.9,9.3)));
+    svg+=`<g transform="translate(540,1010) scale(${bk})" opacity="${C(bk*3)}"><rect x="-150" y="-38" width="300" height="76" rx="38" fill="${BLUE}"/>
+      <circle cx="104" r="22" fill="#fff"/><path d="M95 0 L101 6 L114 -7" stroke="${BLUE}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-20" y="12" text-anchor="middle" font-size="34" fill="#fff">الهدف</text></g>`;
+    for(let i=0;i<26;i++){const a=i*2.3,q=seg(t,8.7,10.2),r=q*(380+(i%5)*50);
+      const x=540+Math.cos(a)*r,y=790+Math.sin(a)*r*.7+q*q*260;
+      svg+=`<rect x="${x}" y="${y}" width="14" height="${8+(i%3)*4}" rx="3" fill="${i%3?BLUE:i%2?SKY:NAVY}" transform="rotate(${i*40+q*400} ${x} ${y})" opacity="${1-q}"/>`}
+  }
+  const drift=1+seg(t,0,DUR)*.02;
+  document.getElementById('stage').innerHTML=`
+    <div class="lbl abs" style="left:70px;top:110px">PGS // E-COMMERCE</div>
+    <div class="lbl abs" style="right:70px;top:110px">00:${String(Math.floor(t)).padStart(2,'0')} / 00:10</div>
+    <div class="abs" style="inset:0;transform:scale(${drift})"><svg class="abs" width="${W}" height="${H}">${svg}</svg>${html}</div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
