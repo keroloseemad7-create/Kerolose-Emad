@@ -81,9 +81,9 @@ function render(t){
       const x=CX+Math.cos(a)*r,y=CY+Math.sin(a)*r+q*q*240;
       g+=`<rect x="${x}" y="${y}" width="14" height="${8+(i%3)*4}" rx="3" fill="${i%3?BLUE:i%2?SKY:NAVY}" transform="rotate(${i*40+q*400} ${x} ${y})" opacity="${1-q}"/>`}
   }
-  const html=`<div class="abs ar" style="left:30px;right:30px;top:320px;font-size:66px;line-height:1.35">
+  const html=`<div class="abs ar" style="left:30px;right:30px;top:290px;font-size:68px;line-height:1.3">
     ${wd('اشتغلنا',t,.3)} ${wd('مع',t,.48)} ${wd('براندات',t,.66,'#1f5fff')} ${wd('كتير',t,.84,'#1f5fff')}<br>
-    ${wd('وحققنا',t,2.0)} ${wd('مبيعات',t,2.18)} ${wd('وصلت',t,2.36)} ${wd('لسبعة',t,2.6,'#1f5fff')} ${wd('مليون.',t,2.78,'#1f5fff')}</div>`;
+    ${wd('وحققنا',t,2.0)} ${wd('مبيعات',t,2.18)}<br>${wd('وصلت',t,2.36)} ${wd('لسبعة',t,2.6,'#1f5fff')} ${wd('مليون.',t,2.78,'#1f5fff')}</div>`;
   const drift=1+seg(t,0,DUR)*.02;
   document.getElementById('stage').innerHTML=`
     <div class="lbl abs" style="left:70px;top:110px">PGS // TRACK RECORD</div>
