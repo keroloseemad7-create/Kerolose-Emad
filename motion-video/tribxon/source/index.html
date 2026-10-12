@@ -13,7 +13,7 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#0b2a82}
 </style></head>
 <body><div id="stage"></div>
 <script>
-const W=1080,H=1920,DUR=8.5;
+const W=1080,H=1920,DUR=10;
 const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
 const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
 const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
@@ -79,8 +79,16 @@ function render(t){
     <div class="abs hd" style="right:${W-560}px;top:950px;font-size:110px">${wd('بــــ',t,3.45)} ${wd('خصم',t,3.6)}</div>
     <div class="abs hd" style="right:${W-600}px;top:1080px;font-size:230px;direction:ltr;opacity:${C((t-3.9)*8)};transform-origin:70% 60%;transform:scale(${t<3.9?0:pk75*(1+flash*.08)});text-shadow:0 0 ${10+glow*60}px rgba(160,200,255,${.35+glow*.6})"><span class="iso">${n}%</span></div>`;
   // sparkles around 75
-  if(t>4.3){for(let i=0;i<6;i++){const ph=(t-4.3)*1.3+i*.37, f=ph%1, sx=[90,560,140,520,330,600][i], sy=[1130,1110,1330,1300,1090,1240][i];
+  if(t>4.3){for(let i=0;i<6;i++){const ph=(t-4.3)*1.3+i*.37, f=ph%1, sx=[90,560,140,520,330,600][i], sy=[1130,1110,1290,1270,1090,1240][i];
     const sc=Math.sin(f*Math.PI);g+=`<g transform="translate(${(sx-OX)/S},${(sy-OY)/S}) scale(${sc*1.3}) rotate(${f*90})" opacity="${sc}"><path d="M0 -26 Q3 -3 26 0 Q3 3 0 26 Q-3 3 -26 0 Q-3 -3 0 -26Z" fill="#fff"/></g>`}}
+  // CTA "اطلبه الآن"
+  const ck=t<5.6?0:back(C((t-5.6)/.5)), tap=t-6.6, press=tap>0&&tap<.25?1-.08*Math.sin(tap/.25*Math.PI):1;
+  const pul=t>7?1+.03*Math.sin((t-7)*6):1, hk=eo(seg(t,6.1,6.6)), hx=L(260,0,hk)+(tap>0&&tap<.25?Math.sin(tap/.25*Math.PI)*-6:0), ho=seg(t,6.1,6.3)*(1-seg(t,7.3,7.6));
+  let rip='';for(let k=0;k<2;k++){const q=C((t-6.7-k*.18)/.8);if(q>0&&q<1)rip+=`<div class="abs" style="left:${330-260-q*60}px;top:${1420-70-q*40}px;width:${520+q*120}px;height:${140+q*80}px;border:4px solid rgba(255,255,255,${(1-q)*.8});border-radius:999px"></div>`}
+  if(t>5.6)html+=rip+`<div class="abs" style="left:70px;top:1350px;width:520px;height:140px;border-radius:999px;background:#fff;box-shadow:0 0 ${30+20*Math.sin(t*5)}px rgba(150,190,255,.8),0 18px 40px rgba(0,10,40,.45);display:flex;align-items:center;justify-content:center;gap:22px;opacity:${C((t-5.6)*6)};transform:scale(${ck*press*pul})">
+      <span style="font-family:Lalezar,Cairo;font-size:78px;color:#0d2f9e;direction:rtl;line-height:1;padding-top:10px">اطلبه الآن</span>
+      <svg width="60" height="60" viewBox="-30 -30 60 60"><circle r="28" fill="#1f4fd8"/><path d="M6 -10 L-6 0 L6 10" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <svg class="abs" width="120" height="140" style="left:${400+hx}px;top:${1430+hk*0}px;opacity:${ho};transform:scale(${tap>0&&tap<.25?.9:1})" viewBox="0 0 120 140"><path d="M38 10 Q50 4 56 14 L56 58 L84 62 Q100 66 98 84 L92 118 Q90 130 76 130 L44 130 Q34 130 28 120 L8 86 Q4 76 14 72 Q22 70 28 78 L36 88 L36 18 Q36 12 38 10Z" fill="#fff" stroke="#0d2f9e" stroke-width="5" stroke-linejoin="round"/></svg>`;
   // footer + logo
   const lg=eo(seg(t,.3,1.0)), ftk=seg(t,4.8,5.4);
   html+=`<img class="abs" src="logo.png" style="left:52px;top:${110+(1-lg)*30}px;width:150px;opacity:${lg}">
