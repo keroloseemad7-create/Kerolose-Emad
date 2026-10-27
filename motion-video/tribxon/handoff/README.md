@@ -1,6 +1,7 @@
 # Tribxon – "خُده!" hand-off reel (9:16, 12s)
 
-`tribxon_handoff_9x16.mp4` — a hand pushes the bottle toward the viewer in three beats
+`tribxon_handoff_9x16.mp4` — a hand emerges from deep inside the screen (a tunnel of
+screen frames) and pushes the bottle outward in three beats
 (خُد! / امسك! / خُده بقى!) until it breaks out of the screen frame, then a closing order
 card: price 440 جنيه, "اطلبه دلوقتي", and the website / Facebook / Instagram channels.
 

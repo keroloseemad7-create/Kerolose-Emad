@@ -35,6 +35,7 @@ notes=[55,55,65.4,49]
 for k in range(int(DUR/2)):
     seg_=(x>=k*2)&(x<k*2+2); bass[seg_]=np.sin(2*np.pi*notes[k%4]*x[seg_])
 gate=~((x>3.3)&(x<5.6)); out+=bass*.18*gate*np.minimum(1,x/1.0)
+add(whoosh(1.3,150,900,.35),0.1)
 add(whoosh(.5,300,2500,.6),1.32)
 add(whoosh(.5,350,3000,.7),2.22)
 add(whoosh(.45,400,4000,.9),3.05)
