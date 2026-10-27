@@ -1,0 +1,154 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:transparent}
+#stage{position:absolute;inset:0;overflow:hidden}
+.abs{position:absolute}
+.hd{font-family:Lalezar,Cairo,sans-serif;color:#fff;direction:rtl;white-space:nowrap;line-height:1.15}
+.bd{font-family:Cairo,sans-serif;font-weight:800;direction:rtl;white-space:nowrap}
+.iso{direction:ltr;unicode-bidi:isolate;display:inline-block}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=1080,H=1920,DUR=12,BW=416,BH=891,M=46;
+const C=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), seg=(t,a,b)=>C((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, L=(a,b,x)=>a+(b-a)*x;
+var back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+// from deep inside the screen toward the viewer: [start, duration, scale, centerY, easing]
+const KEYS=[[0,0,.05,960],[.1,1.3,.3,980,'eo'],[1.5,.38,.58,1010,'back'],[2.4,.38,1.0,1040,'back'],[3.3,.32,2.5,1000,'back'],[5.3,.7,.72,650,'eio']];
+const EASE={eo,back,eio};
+const POP=3.3+.12, POPEND=5.85;
+function pose(t){
+  let s=KEYS[0][2],cy=KEYS[0][3];
+  for(let i=1;i<KEYS.length;i++){const[k0,d,ks,ky]=KEYS[i],p=seg(t,k0,k0+d);if(p<=0)break;
+    const e=EASE[KEYS[i][4]](p); s=L(s,ks,e); cy=L(cy,ky,e);}
+  const bob=Math.sin(t*3.1)*10*(t<POP||t>POPEND?1:.3), sway=Math.sin(t*2.3)*2.2;
+  return{s,cy:cy+bob,cx:540+Math.sin(t*1.7)*8,r:sway+(t>5.3?-4*eo(seg(t,5.3,6)):0)};
+}
+const SKIN='#e3a888',SKD='#b8775a',SKL='#f4c9ab';
+function finger(y,len,h,rot){ // fingertip curling from the left edge onto the bottle front
+  return `<g transform="translate(-20 ${y}) rotate(${rot})">
+    <rect x="-30" y="${-h/2}" width="${len+30}" height="${h}" rx="${h/2}" fill="url(#fg)" stroke="${SKD}" stroke-width="2.5"/>
+    <ellipse cx="${len-h*.42}" cy="0" rx="${h*.36}" ry="${h*.3}" fill="#f6dccd" stroke="#d7a58d" stroke-width="2"/>
+    <path d="M${len-h*1.15} ${-h*.32} q-6 ${h*.32} 0 ${h*.64}" stroke="${SKD}" stroke-width="2.5" fill="none" opacity=".6"/></g>`;
+}
+function handSVG(part){
+  const back=`
+   <path d="M40 590 Q-46 630 -46 770 Q-44 890 22 960 Q70 1000 76 1060 L290 1060 Q296 990 322 930 Q352 860 320 800 L120 640 Z" fill="url(#palm)" stroke="${SKD}" stroke-width="3"/>
+   <g mask="url(#armfade)">
+    <path d="M74 1040 L294 1040 L264 1250 L116 1250 Z" fill="url(#arm)"/>
+    <path d="M104 1236 L276 1236 L252 1440 L128 1440 Z" fill="url(#sleeve)"/>
+    <path d="M104 1236 L276 1236" stroke="#3d55a8" stroke-width="8"/></g>`;
+  const front=`
+   ${finger(610,92,60,-4)}${finger(678,98,64,-1)}${finger(746,94,62,3)}${finger(810,80,54,7)}
+   <g transform="translate(436 560) rotate(-28)">
+    <rect x="-80" y="-34" width="112" height="68" rx="34" fill="url(#th)" stroke="${SKD}" stroke-width="2.5"/>
+    <ellipse cx="-50" cy="0" rx="22" ry="19" fill="#f6dccd" stroke="#d7a58d" stroke-width="2"/></g>`;
+  const img=`<image href="bottle.png" x="0" y="0" width="${BW}" height="${BH}"/>`;
+  return part=='all'?back+img+front:img+front;
+}
+const DEFS=`<defs>
+  <linearGradient id="fg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${SKD}"/><stop offset=".45" stop-color="${SKIN}"/><stop offset="1" stop-color="${SKL}"/></linearGradient>
+  <linearGradient id="th" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="${SKD}"/><stop offset=".5" stop-color="${SKIN}"/><stop offset="1" stop-color="${SKL}"/></linearGradient>
+  <linearGradient id="palm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${SKIN}"/><stop offset="1" stop-color="${SKD}"/></linearGradient>
+  <linearGradient id="arm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${SKD}"/><stop offset=".4" stop-color="${SKIN}"/><stop offset="1" stop-color="#a86a4f"/></linearGradient>
+  <linearGradient id="sleeve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0c1a4a"/><stop offset=".4" stop-color="#2a3f86"/><stop offset="1" stop-color="#0a1640"/></linearGradient>
+  <linearGradient id="fade" x1="0" y1="1040" x2="0" y2="1440" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
+  <mask id="armfade" maskUnits="userSpaceOnUse" x="-100" y="900" width="600" height="700"><rect x="-100" y="900" width="600" height="700" fill="url(#fade)"/></mask>
+ </defs>`;
+function handLayer(p,part,blur,ox=0,oy=0){
+  return `<div class="abs" style="left:${p.cx-BW/2-ox}px;top:${p.cy-BH/2-oy}px;width:${BW}px;height:${BH}px;transform:rotate(${p.r}deg) scale(${p.s});filter:${(()=>{const d=C(p.s/.32),b=blur+(1-d)*3;return (b>.3?`blur(${b}px) `:'')+`brightness(${L(.3,1,d)}) `})()}drop-shadow(0 ${30*p.s}px ${40*p.s}px rgba(0,8,40,.45))">
+   <svg width="${BW}" height="${BH}" style="overflow:visible">${DEFS}${handSVG(part)}</svg></div>`;
+}
+function word(txt,t,t0,t1,size,top,extra=''){
+  if(t<t0||t>t1+.25)return'';
+  const k=back(C((t-t0)/.35)), out=seg(t,t1,t1+.2);
+  return `<div class="abs hd" style="left:0;right:0;top:${top}px;text-align:center;font-size:${size}px;opacity:${C((t-t0)/.08)*(1-out)};transform:scale(${L(.4,1,k)*(1+out*.3)}) rotate(${(1-C((t-t0)/.35))*-6}deg);filter:blur(${out*10}px);text-shadow:0 8px 0 #071a5c,0 0 40px rgba(120,170,255,.6);${extra}">${txt}</div>`;
+}
+const ICON={
+  web:`<svg width="44" height="44" viewBox="-22 -22 44 44"><circle r="18" fill="none" stroke="#1f4fd8" stroke-width="4"/><ellipse rx="8" ry="18" fill="none" stroke="#1f4fd8" stroke-width="4"/><path d="M-18 0H18M-15 -9H15M-15 9H15" stroke="#1f4fd8" stroke-width="3"/></svg>`,
+  fb:`<svg width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="#1877f2"/><path d="M24 36V24h4l1-5h-5v-3c0-1.5.6-2.5 2.6-2.5H29V9.3c-.5-.1-2-.3-3.8-.3-3.8 0-6.2 2.3-6.2 6.5V19h-4v5h4v12z" fill="#fff"/></svg>`,
+  ig:`<svg width="44" height="44" viewBox="0 0 44 44"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".35" stop-color="#fa7e1e"/><stop offset=".6" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><rect width="44" height="44" rx="12" fill="url(#igg)"/><rect x="9" y="9" width="26" height="26" rx="8" fill="none" stroke="#fff" stroke-width="3.5"/><circle cx="22" cy="22" r="6.5" fill="none" stroke="#fff" stroke-width="3.5"/><circle cx="30" cy="14" r="2.2" fill="#fff"/></svg>`
+};
+function render(t){
+  const p=pose(t), p2=pose(t+1/30), vel=Math.abs(p2.s-p.s)*30+Math.abs(p2.cy-p.cy)/40;
+  const blur=C(vel*2.2,0,14);
+  const popped=t>=POP&&t<POPEND;
+  // impact shake when the bottle breaks the frame
+  const q=t-POP, shake=q>0&&q<.45?Math.sin(q*85)*22*(1-q/.45):0;
+  const flash=q>0?Math.exp(-q*6)*.55:0;
+  // speed lines while pushing
+  let lines='';
+  for(const [k0,d] of KEYS.slice(1,4)){const a=seg(t,k0-.05,k0+d+.15);if(a<=0||a>=1)continue;
+    for(let i=0;i<26;i++){const an=i/26*Math.PI*2+i*.37, r0=L(380,120,a)+(i%3)*60, r1=r0+260+(i%4)*90;
+      lines+=`<line x1="${540+Math.cos(an)*r0}" y1="${960+Math.sin(an)*r0}" x2="${540+Math.cos(an)*r1}" y2="${960+Math.sin(an)*r1}" stroke="#fff" stroke-width="${3+(i%3)*2}" opacity="${Math.sin(a*Math.PI)*.55}" stroke-linecap="round"/>`}}
+  // bokeh dots drift outward with each push (parallax depth)
+  let bok='';const depth=Math.log(p.s/.42+1);
+  for(let i=0;i<14;i++){const an=i*2.4,rr=(260+i*55)*(1+depth*.5),x=540+Math.cos(an)*rr,y=900+Math.sin(an)*rr*1.4;
+    bok+=`<circle cx="${x}" cy="${y}" r="${(18+i%5*12)*(1+depth*.4)}" fill="#9cc0ff" opacity="${.08+(i%3)*.04}"/>`}
+  const fk=eo(seg(t,0,.5));
+  let tun='';const flow=t*.18+Math.log(p.s/.05)*.32;
+  for(let i=0;i<10;i++){const z=((i/10+flow)%1+1)%1, sc=.04+Math.pow(z,2.4)*1.1, w=(W-2*M)*sc, hh=(H-2*M)*sc;
+    tun+=`<rect x="${540-w/2}" y="${960-hh/2}" width="${w}" height="${hh}" rx="${54*sc}" fill="none" stroke="#a9c6ff" stroke-width="${1+z*6}" opacity="${z*(1-z)*1.4}"/>`}
+  const bg=`<div class="abs" style="inset:0;background:radial-gradient(ellipse 70% 50% at 50% 50%, #040f38 0%, #0d2b80 22%, #2a57bd 60%, #3a68cc 100%)"></div>
+    <svg class="abs" width="${W}" height="${H}" style="left:0;top:0">${tun}</svg>
+    <svg class="abs" width="${W}" height="${H}" style="left:0;top:0;filter:blur(6px)">${bok}</svg>
+    <svg class="abs" width="${W}" height="${H}" style="left:0;top:0">${lines}</svg>`;
+  // ---------- texts
+  let tx='';
+  tx+=word('استنى… <span style="font-family:\'Noto Color Emoji\'">👀</span>',t,.45,1.05,130,250);
+  tx+=word('ده ليك انت <span style="font-family:\'Noto Color Emoji\'">🫵</span>',t,1.05,1.45,130,250);
+  tx+=word('خُــد!',t,1.5,2.35,210,190);
+  tx+=word('امسـك!',t,2.4,3.25,210,190);
+  tx+=word('خُــده بقى!',t,3.3,3.9,190,140,'z-index:5');
+  // "can't grab it?" sticker on top of the oversized bottle
+  if(t>3.95&&t<5.5){const k=back(C((t-3.95)/.4)),o=1-seg(t,5.2,5.4);
+    tx+=`<div class="abs" style="left:0;right:0;top:1500px;display:flex;justify-content:center;opacity:${o}">
+      <div class="hd" style="background:#ffd23f;color:#0b1f63;font-size:96px;padding:22px 54px 10px;border-radius:40px;box-shadow:0 14px 0 #c79a00,0 20px 50px rgba(0,0,0,.4);transform:scale(${k}) rotate(${-4+Math.sin(t*6)*1.5}deg)">مش عارف تمسكه؟ <span style="font-family:'Noto Color Emoji'">😅</span></div></div>`;}
+  // ---------- final order card
+  let card='';
+  const ck=eo(seg(t,5.7,6.25));
+  if(t>5.6){
+    const it=(t0)=>{const k=back(C((t-t0)/.4));return `opacity:${C((t-t0)/.12)};transform:translateY(${(1-C((t-t0)/.4))*40}px) scale(${L(.85,1,k)})`;};
+    const tap=t-8.4, press=tap>0&&tap<.25?1-.07*Math.sin(tap/.25*Math.PI):1, pul=t>8.8?1+.025*Math.sin((t-8.8)*6):1;
+    const hk=eo(seg(t,7.9,8.4)), ho=seg(t,7.9,8.05)*(1-seg(t,9.0,9.3));
+    let rip='';for(let k=0;k<2;k++){const r=C((t-8.45-k*.18)/.8);if(r>0&&r<1)rip+=`<div class="abs" style="left:${70-r*30}px;top:${300-r*30}px;width:${880+r*60}px;height:${160+r*60}px;border:5px solid rgba(31,79,216,${(1-r)*.7});border-radius:999px"></div>`}
+    const chip=(ic,lb,t0)=>`<div style="display:flex;align-items:center;gap:14px;background:#eef3ff;border-radius:999px;padding:12px 26px 12px 20px;${it(t0)}">${ic}<span class="bd" style="font-size:38px;color:#0b1f63">${lb}</span></div>`;
+    card=`<div class="abs" style="left:${M}px;right:${M}px;top:${L(H,1080,ck)}px;height:${H-M-1080}px;background:#fff;border-radius:60px 60px 54px 54px;box-shadow:0 -20px 60px rgba(0,10,50,.35)">
+      <div class="abs hd" style="right:70px;top:60px;font-size:104px;color:#0d2f9e;${it(6.15)}">اوبتا تريبكسون</div>
+      <div class="abs bd" style="right:72px;top:200px;font-size:40px;color:#43507a;font-weight:600;${it(6.7)}">يساعد في دعم مستويات الطاقة الطبيعية</div>
+      ${rip}
+      <div class="abs" style="left:70px;top:300px;width:848px;height:160px;border-radius:999px;background:linear-gradient(90deg,#1f4fd8,#0d2f9e);display:flex;align-items:center;justify-content:center;gap:26px;box-shadow:0 14px 0 #071a5c,0 0 ${30+20*Math.sin(t*5)}px rgba(31,79,216,.5);opacity:${C((t-7.3)*6)};transform:scale(${(t<7.3?0:back(C((t-7.3)/.45)))*press*pul})">
+        <span class="hd" style="font-size:88px;padding-top:12px">اطلبه دلوقتي</span>
+        <svg width="70" height="70" viewBox="-35 -35 70 70"><circle r="33" fill="#fff"/><path d="M7 -12 L-7 0 L7 12" stroke="#1f4fd8" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <svg class="abs" width="130" height="150" style="left:${600+L(260,0,hk)}px;top:${400+L(160,0,hk)}px;opacity:${ho};transform:scale(${tap>0&&tap<.25?.9:1})" viewBox="0 0 120 140"><path d="M38 10 Q50 4 56 14 L56 58 L84 62 Q100 66 98 84 L92 118 Q90 130 76 130 L44 130 Q34 130 28 120 L8 86 Q4 76 14 72 Q22 70 28 78 L36 88 L36 18 Q36 12 38 10Z" fill="#fff" stroke="#0d2f9e" stroke-width="5" stroke-linejoin="round"/></svg>
+      <div class="abs bd" style="right:72px;top:510px;font-size:36px;color:#43507a;font-weight:600;${it(8.9)}">متاح الأوردر من</div>
+      <div class="abs" style="left:60px;right:60px;top:580px;display:flex;justify-content:center;gap:22px;direction:rtl">
+        ${chip(ICON.web,'الموقع',9.1)}${chip(ICON.fb,'فيسبوك',9.3)}${chip(ICON.ig,'انستجرام',9.5)}</div>
+      <div class="abs bd" style="left:0;right:0;top:720px;text-align:center;font-size:44px;color:#0d2f9e;${it(10.0)}">ويوصلك لحد باب البيت <span style="font-family:'Noto Color Emoji'">📦</span></div>
+    </div>`;
+    // price badge pinned beside the bottle
+    if(t>6.5){const k=back(C((t-6.5)/.45));
+      card+=`<div class="abs" style="left:640px;top:330px;width:330px;height:330px;transform:scale(${k}) rotate(${10+Math.sin(t*2.5)*3}deg)">
+        <svg class="abs" width="330" height="330" viewBox="-165 -165 330 330" style="left:0;top:0"><path d="${Array.from({length:32},(_,i)=>{const a=i/32*Math.PI*2,r=i%2?140:162;return(i?'L':'M')+(Math.cos(a)*r).toFixed(1)+' '+(Math.sin(a)*r).toFixed(1)}).join(' ')}Z" fill="#ffd23f" stroke="#fff" stroke-width="8"/></svg>
+        <div class="abs hd" style="left:0;right:0;top:78px;text-align:center;color:#0b1f63;font-size:118px;line-height:1"><span class="iso">440</span></div>
+        <div class="abs hd" style="left:0;right:0;top:196px;text-align:center;color:#0b1f63;font-size:56px;line-height:1">جنيه</div></div>`;}
+    card+=`<div class="abs hd" style="left:0;right:0;top:120px;text-align:center;font-size:84px;text-shadow:0 6px 0 #071a5c;${it(5.95)}">خليه يوصل لإيدك بجد <span style="font-family:'Noto Color Emoji'">👇</span></div>`;
+  }
+  const lg=eo(seg(t,.3,1.0))*(1-seg(t,3.2,3.4))+eo(seg(t,9.8,10.3));
+  const logo=`<img class="abs" src="logo.png" style="left:${M+30}px;top:${M+26}px;width:96px;opacity:${C(lg)}">`;
+  // ---------- compose: clipped "screen" + pop-out layer above the frame
+  const inner=`<div class="abs" style="left:${M}px;top:${M}px;width:${W-2*M}px;height:${H-2*M}px;border-radius:54px;overflow:hidden;opacity:${fk}">
+      <div class="abs" style="left:${-M}px;top:${-M}px;width:${W}px;height:${H}px">${bg}${handLayer(p,'all',blur)}</div></div>`;
+  const frame=`<div class="abs" style="left:${M}px;top:${M}px;width:${W-2*M}px;height:${H-2*M}px;border-radius:54px;border:10px solid rgba(255,255,255,${.9*fk});box-shadow:0 0 0 2px rgba(10,30,100,.3),inset 0 0 60px rgba(0,10,50,.35)"></div>`;
+  const pop=popped?handLayer(p,'grip',blur):'';
+  const z=1+.02*Math.sin(t*1.3);
+  // overlay only: the 3D scene underneath is rendered in Blender (scene.py)
+  document.getElementById('stage').innerHTML=`
+   <div class="abs" style="inset:0;transform:translate(${shake*.7}px,${shake}px)">${logo}${tx}${card}</div>
+   <div class="abs" style="inset:0;background:#fff;opacity:${flash}"></div>`;
+}
+window.render=render;window.DUR=DUR;render(0);
+</script></body></html>
